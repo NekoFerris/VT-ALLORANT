@@ -2,32 +2,22 @@
 using System.Threading.Tasks;
 using Discord;
 using Discord.WebSocket;
+using VT_ALLORANT.Model;
+
+namespace VT_ALLORANT;
 
 class Program
 {
-    private DiscordSocketClient _client;
+    private BotBase botBase = new BotBase();
 
-    static void Main(string[] args) => new Program().RunBotAsync().GetAwaiter().GetResult();
-
-    public async Task RunBotAsync()
+    public static void Main(string[] args)
     {
-        _client = new DiscordSocketClient();
-        _client.Log += Log;
+        new Program().MainAsync().GetAwaiter().GetResult();
+    }
 
-        await RegisterCommandsAsync();
-        await _client.LoginAsync(TokenType.Bot, "your-bot-token");
-        await _client.StartAsync();
+    public async Task MainAsync()
+    {
+        await botBase.Start();
         await Task.Delay(-1);
-    }
-
-    private Task Log(LogMessage arg)
-    {
-        Console.WriteLine(arg);
-        return Task.CompletedTask;
-    }
-
-    public async Task RegisterCommandsAsync()
-    {
-        // Register your commands here
     }
 }
