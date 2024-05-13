@@ -1,28 +1,60 @@
-using System;
+using System.ComponentModel.DataAnnotations.Schema;
+using System.ComponentModel.DataAnnotations;
+using VT_ALLORANT.Controller;
 
 namespace VT_ALLORANT.Model.Valorant;
+
+[Table("ValorantUser")]
     public class ValorantUser
     {
         // Properties
-        public string Username { get; set; }
-        public string UserId { get; set; }
+        [Key]
+        [ForeignKey("ValorantUserId")]
+        public int Id { get; set; }
+        public string PUUID { get; set; }
+        public string NAME { get; set; }
+        public string TAG { get; set; }
 
         // Constructor
-        public ValorantUser(string userId)
+        public ValorantUser()
         {
-            UserId = userId;
+
         }
 
         // Methods
         public void SendMessage(string message)
         {
-            // Code to send a message to the user
+            DBValorantUser dBAccess = new();
+            dBAccess.Update(this);
         }
 
-        public void AddFriend(ValorantUser friend)
+        public void InsertUser()
         {
-            // Code to add a friend to the user's friend list
+            DBValorantUser dBAccess = new();
+            dBAccess.Add(this);
         }
 
-        // Other methods and properties can be added as needed
+        public void SaveChanges()
+        {
+            DBValorantUser dBAccess = new();
+            dBAccess.Update(this);
+        }
+
+        public void DeleteUser()
+        {
+            DBValorantUser dBAccess = new();
+            dBAccess.Delete(this);
+        }
+
+        public static void LoadUser(int Id)
+        {
+            DBValorantUser dBAccess = new();
+            dBAccess.GetById(Id);
+        }
+
+        public List<ValorantUser> GetAll()
+        {
+            DBValorantUser dBAccess = new();
+            return dBAccess.GetAll();
+        }
     }

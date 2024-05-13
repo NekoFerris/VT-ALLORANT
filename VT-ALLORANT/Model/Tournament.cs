@@ -1,5 +1,3 @@
-using RadiantConnect.Network.PreGameEndpoints.DataTypes;
-
 namespace VT_ALLORANT.Model;
 public class Tournament
 {

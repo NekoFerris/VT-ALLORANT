@@ -45,17 +45,9 @@ public class DiscordConnection
             var guildCommand = new SlashCommandBuilder()
                 .WithName("register")
                 .WithDescription("Spieler Registrieren")
-                .AddOption(new SlashCommandOptionBuilder()
-                    .WithName("field-c")
-                    .WithDescription("Gets or sets the field C")
-                    .WithType(ApplicationCommandOptionType.SubCommandGroup)
-                    .AddOption(new SlashCommandOptionBuilder()
-                        .WithName("set")
-                        .WithDescription("Sets the field C")
-                        .WithType(ApplicationCommandOptionType.SubCommand)
-                        .AddOption("value", ApplicationCommandOptionType.Boolean, "the value to set the fie to.", isRequired: true)
-                    )
-                );
+                .AddOption("name", ApplicationCommandOptionType.String, "Name des Valorant Accounts", isRequired: true)
+                .AddOption("tag", ApplicationCommandOptionType.String, "Tag des Valorant Accounts", isRequired: true)
+                .AddOption("vtname", ApplicationCommandOptionType.String, "VTuber Name", isRequired: true);
 
             await guild.CreateApplicationCommandAsync(guildCommand.Build());
         }
@@ -79,7 +71,15 @@ public class DiscordConnection
         {
             Console.WriteLine($"Received command: {command.Data.Name}");
             await command.DeferAsync();
-            await command.ModifyOriginalResponseAsync(properties => properties.Content = $"You executed {command.Data.Name}");
+            switch (command.Data.Name)
+            {
+                case "register":
+                    await command.ModifyOriginalResponseAsync(properties => properties.Content = SlashCommands.Register(command));
+                    break;
+                default:
+                    await command.ModifyOriginalResponseAsync(properties => properties.Content = "Command not found");
+                    break;
+            }
         }
         catch (Exception ex)
         {

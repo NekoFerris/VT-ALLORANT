@@ -7,13 +7,11 @@ public class BotBase
 {
     // Properties
     public DiscordConnection DiscordConnection { get; set; }
-    public ValorantConnection ValorantConnection { get; set; }
 
     // Constructor
     public BotBase()
     {
         DiscordConnection = new DiscordConnection();
-        ValorantConnection = new ValorantConnection();
     }
 
     // Methods

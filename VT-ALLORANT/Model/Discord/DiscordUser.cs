@@ -1,15 +1,22 @@
+using VT_ALLORANT.Controller;
+using System.ComponentModel.DataAnnotations.Schema;
+using System.ComponentModel.DataAnnotations;
+
 namespace VT_ALLORANT.Model.Discord;
 
+[Table("DiscordUser")]
 public class DiscordUser
 {
     // Properties
+    [Key]
+    [ForeignKey("DiscordUserId")]
+    public int Id { get; set; }
     public string Username { get; set; }
-    public string UserId { get; set; }
-
+    public ulong DiscordId { get; set; }
     // Constructor
-    public DiscordUser(string userId)
+    public DiscordUser()
     {
-        UserId = userId;
+
     }
 
     // Methods
@@ -17,11 +24,32 @@ public class DiscordUser
     {
         // Code to send a message to the user
     }
-
-    public void AddFriend(DiscordUser friend)
+    public void InsertUser()
     {
-        // Code to add a friend to the user's friend list
+        DBDiscordUser dBAccess = new();
+        dBAccess.Add(this);
+    }
+    public void SaveChanges()
+    {
+        DBDiscordUser dBAccess = new();
+        dBAccess.Update(this);
     }
 
-    // Other methods and properties can be added as needed
+    public void DeleteUser()
+    {
+        DBDiscordUser dBAccess = new();
+        dBAccess.Delete(this);
+    }
+
+    public static void LoadUser(int Id)
+    {
+        DBDiscordUser dBAccess = new();
+        dBAccess.GetById(Id);
+    }
+
+    public List<DiscordUser> GetAll()
+    {
+        DBDiscordUser dBAccess = new();
+        return dBAccess.GetAll();
+    }
 }

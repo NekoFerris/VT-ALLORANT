@@ -1,18 +1,22 @@
-using System;
-using RadiantConnect;
+using MingweiSamuel.Camille.Enums;
+using MingweiSamuel.Camille;
 
 namespace VT_ALLORANT.Model.Valorant
 {
-    public class ValorantConnection
+
+    public static class ValorantConnection
     {
-        // TODO: Add your class members and methods here
-        public Initiator Init;
+        public static RiotApi Api { get; set; }
+
         // Constructor
-        public ValorantConnection()
+        static ValorantConnection()
         {
-            //Init = new Initiator();
+            Api = RiotApi.NewInstance("RGAPI-6ff86305-87df-4146-a254-2cdc2b673f4f");
         }
 
-        // TODO: Add your class methods here
+        public static string GetUserUUIDByNameAndTag(string name, string tag)
+        {
+            return Api.AccountV1.GetByRiotId(Region.Europe, tag, name).Puuid ?? throw new Exception("User not found");
+        }
     }
 }
