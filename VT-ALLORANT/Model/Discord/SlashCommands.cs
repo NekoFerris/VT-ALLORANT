@@ -1,6 +1,8 @@
 using Discord.WebSocket;
 using VT_ALLORANT.Model.Valorant;
 using MingweiSamuel.Camille.Enums;
+using Discord;
+using System.Reflection.Metadata.Ecma335;
 
 namespace VT_ALLORANT.Model.Discord
 {
@@ -21,7 +23,7 @@ namespace VT_ALLORANT.Model.Discord
             }
             catch (Exception e)
             {
-                return "User not found in Valorant API";
+                return "Riot Account nicht gefunden";
             }
             DiscordUser discordUser = new()
             {
@@ -30,7 +32,7 @@ namespace VT_ALLORANT.Model.Discord
             };
             Player player = Player.CreatePlayer(options[2].Value.ToString().Trim(), discordUser, valorantUser);
             player.InsertPlayer();
-            return "Register command executed";
+            return "Regestrierung erfolgreich";
         }
 
         public static string Unregister(SocketSlashCommand command)
@@ -38,24 +40,30 @@ namespace VT_ALLORANT.Model.Discord
             return "Unregister command executed";
         }
 
-        public static string CreateTeam()
-        {
-            return "Create team command executed";
+        public static string CreateTeam(SocketSlashCommand command)
+        { 
+            Team.CreateTeam(command.Data.Options.ToList()[0].Value.ToString().Trim(), Player.LoadPlayer(command.User.Id)).InsertTeam();
+            return $"Team {command.Data.Options.ToList()[0].Value.ToString().Trim()} erstellt";
         }
 
-        public static string DeleteTeam()
+        public static string DeleteTeam(SocketSlashCommand command)
         {
             return "Delete team command executed";
         }
 
-        public static string AddPlayer()
+        public static string AddPlayer(SocketSlashCommand command)
         {
             return "Add player command executed";
         }
 
-        public static string RemovePlayer()
+        public static string RemovePlayer(SocketSlashCommand command)
         {
             return "Remove player command executed";
+        }
+
+        internal static string ChangeLeader(SocketSlashCommand command)
+        {
+            return "Change leader command executed";
         }
     }
 }

@@ -41,13 +41,19 @@ public class DiscordUser
         dBAccess.Delete(this);
     }
 
-    public static void LoadUser(int Id)
+    public static DiscordUser LoadUser(int Id)
     {
         DBDiscordUser dBAccess = new();
-        dBAccess.GetById(Id);
+        return dBAccess.GetById(Id);
     }
 
-    public List<DiscordUser> GetAll()
+    public static DiscordUser LoadUser(ulong Id)
+    {
+        DBDiscordUser dBAccess = new();
+        return dBAccess.GetByUUID(Id);
+    }
+
+    public static List<DiscordUser> GetAll()
     {
         DBDiscordUser dBAccess = new();
         return dBAccess.GetAll();

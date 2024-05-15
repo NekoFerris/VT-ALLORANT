@@ -6,11 +6,12 @@ using System.ComponentModel.DataAnnotations;
 
 namespace VT_ALLORANT.Model;
 
-[Table("DiscordPlayer")]
+[Table("Player")]
 public class Player
 {
     // Properties
     [Key]
+    [ForeignKey("PlayerId")]
     public int Id { get; set; }  // Unique ID of the player
     public string Name { get; set; } = "unset"; // Default value "unset
     public DiscordUser DiscordUser { get; set; }  // Discord User
@@ -39,11 +40,18 @@ public class Player
         dBAccess.Add(this);
     }
 
-    public void LoadPlayer(int id)
+    public static Player LoadPlayer(int id)
     {
         DBPlayer dBAccess = new();
-        dBAccess.GetById(id);
+        return dBAccess.GetById(id);
     }
+
+    internal static Player LoadPlayer(ulong id)
+    {
+        DBPlayer dBAccess = new();
+        return dBAccess.GetByDiscordID(id);
+    }
+
     public void SaveChanges()
     {
         DBPlayer dBAccess = new();
@@ -55,7 +63,7 @@ public class Player
         dBAccess.Delete(this);
     }
 
-    public List<Player> GetAll()
+    public static List<Player> GetAll()
     {
         DBPlayer dBAccess = new();
         return dBAccess.GetAll();

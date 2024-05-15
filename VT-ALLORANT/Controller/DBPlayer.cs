@@ -10,18 +10,12 @@ namespace VT_ALLORANT.Controller
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
-            ModelBuilder modelBuilder = new ModelBuilder();
-            modelBuilder.Entity<Player>()
-                        .HasOne(t => t.DiscordUser);
-            modelBuilder.Entity<Player>()
-                        .HasOne(t => t.ValorantUser);
             base.OnConfiguring(optionsBuilder);
             optionsBuilder.UseSqlite("Data Source=database.db");
         }
 
         public void DBAccess()
         {
-            Database.EnsureCreated();
             Items = Set<Player>();
         }
 
@@ -35,12 +29,16 @@ namespace VT_ALLORANT.Controller
         // Read operation
         public Player GetById(int id)
         {
-            return Items.Find(id) ?? throw new Exception("Item not found");
+            return Items.Find(id) ?? throw new Exception("Player not found");
+        }
+        public Player GetByDiscordID(ulong id)
+        {
+            return Items.FirstOrDefault(p => p.DiscordUser.DiscordId == id) ?? throw new Exception("Player not found");
         }
 
         public List<Player> GetAll()
         {
-            return Items.ToList();
+            return [.. Items];
         }
 
         // Update operation

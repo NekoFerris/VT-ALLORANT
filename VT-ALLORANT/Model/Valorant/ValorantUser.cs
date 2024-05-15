@@ -46,13 +46,13 @@ namespace VT_ALLORANT.Model.Valorant;
             dBAccess.Delete(this);
         }
 
-        public static void LoadUser(int Id)
+        public static ValorantUser LoadUser(int Id)
         {
             DBValorantUser dBAccess = new();
-            dBAccess.GetById(Id);
+            return dBAccess.GetById(Id);
         }
 
-        public List<ValorantUser> GetAll()
+        public static List<ValorantUser> GetAll()
         {
             DBValorantUser dBAccess = new();
             return dBAccess.GetAll();

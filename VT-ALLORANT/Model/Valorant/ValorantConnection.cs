@@ -11,12 +11,12 @@ namespace VT_ALLORANT.Model.Valorant
         // Constructor
         static ValorantConnection()
         {
-            Api = RiotApi.NewInstance("RGAPI-6ff86305-87df-4146-a254-2cdc2b673f4f");
+            Api = RiotApi.NewInstance("RGAPI-81cdcc1c-ea9d-498a-bcb8-b67a94690aad");
         }
 
         public static string GetUserUUIDByNameAndTag(string name, string tag)
         {
-            return Api.AccountV1.GetByRiotId(Region.Europe, tag, name).Puuid ?? throw new Exception("User not found");
+            return Api.AccountV1.GetByRiotId(Region.Europe, tag, name)?.Puuid ?? throw new Exception("User not found");
         }
     }
 }
