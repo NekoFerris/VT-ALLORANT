@@ -10,7 +10,7 @@ public class DiscordUser
     // Properties
     [Key]
     [ForeignKey("DiscordUserId")]
-    public int Id { get; set; }
+    public int DiscordUserId { get; set; }
     public string Username { get; set; }
     public ulong DiscordId { get; set; }
     // Constructor

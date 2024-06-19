@@ -2,7 +2,7 @@ namespace VT_ALLORANT.Model;
 public class Tournament
 {
     // Properties
-    public int Id { get; set; }  // Unique ID of the tournament
+    public int TournamentId { get; set; }  // Unique ID of the tournament
     public string Name { get; set; } = "unset"; // Default value "unset
     public List<Team> Teams { get; set; } = []; // Default value new List<Team>()
     public List<Player> Moderators { get; set; } = []; // Default value new List<Team>()
@@ -13,7 +13,7 @@ public class Tournament
     // Constructor
     public Tournament()
     {
-        Id = 1;
+        TournamentId = 1;
     }
 
     // Methods

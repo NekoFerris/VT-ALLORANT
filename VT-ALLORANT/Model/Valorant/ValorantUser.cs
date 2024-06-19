@@ -10,7 +10,7 @@ namespace VT_ALLORANT.Model.Valorant;
         // Properties
         [Key]
         [ForeignKey("ValorantUserId")]
-        public int Id { get; set; }
+        public int ValorantUserId { get; set; }
         public string PUUID { get; set; }
         public string NAME { get; set; }
         public string TAG { get; set; }

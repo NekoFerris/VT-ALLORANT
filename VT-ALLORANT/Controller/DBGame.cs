@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using VT_ALLORANT.Model;
 
 namespace VT_ALLORANT.Controller
@@ -10,8 +11,14 @@ namespace VT_ALLORANT.Controller
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
+            #if DEBUG
+            optionsBuilder.EnableSensitiveDataLogging();
+            base.OnConfiguring(optionsBuilder);
+            optionsBuilder.UseSqlite("Data Source=database.db").LogTo(Console.WriteLine, LogLevel.Information);
+            #else
             base.OnConfiguring(optionsBuilder);
             optionsBuilder.UseSqlite("Data Source=database.db");
+            #endif
         }
 
         public void DBAccess()

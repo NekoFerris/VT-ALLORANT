@@ -16,7 +16,6 @@ public class DiscordConnection
         };
         _client = new DiscordSocketClient(config);
         _client.Log += Log;
-        _client.Ready += Client_Ready;
         _client.SlashCommandExecuted += SlashCommandHandler;
         await _client.LoginAsync(TokenType.Bot, "MTIzODQ1OTkwMDc2MjI2MzYwMw.GyMKKB.LvrgEdIf_QUS53Zo1hhS6b9sjnLb9Y3dd_ZoYg");
         await _client.StartAsync();
@@ -28,76 +27,87 @@ public class DiscordConnection
         return Task.CompletedTask;
     }
 
-    public async Task Client_Ready()
+    public async Task CreateCommands()
     {
-        try
+
+        await Task.Run(async () =>
         {
-            SocketGuild guild = _client.GetGuild(1238457984288296982);
-
-            IReadOnlyCollection<SocketApplicationCommand> guildCommands = await guild.GetApplicationCommandsAsync();
-            IReadOnlyCollection<SocketApplicationCommand> globalCommands = await _client.GetGlobalApplicationCommandsAsync();
-
-            IEnumerable<Task> deleteGuildCommandsTasks = guildCommands.Select(command => command.DeleteAsync());
-            IEnumerable<Task> deleteGlobalCommandsTasks = globalCommands.Select(command => command.DeleteAsync());
-
-            await Task.WhenAll(deleteGuildCommandsTasks);
-            await Task.WhenAll(deleteGlobalCommandsTasks);
-
-            SlashCommandBuilder guildCommand = new SlashCommandBuilder()
-                .WithName("register")
-                .WithDescription("Spieler Registrieren")
-                .AddOption("name", ApplicationCommandOptionType.String, "Name des Valorant Accounts", isRequired: true)
-                .AddOption("tag", ApplicationCommandOptionType.String, "Tag des Valorant Accounts", isRequired: true)
-                .AddOption("vtname", ApplicationCommandOptionType.String, "VTuber Name", isRequired: true);
-            await guild.CreateApplicationCommandAsync(guildCommand.Build());
-
-            guildCommand = new SlashCommandBuilder()
-                .WithName("unregister")
-                .WithDescription("Registrierung aufheben");
-            await guild.CreateApplicationCommandAsync(guildCommand.Build());
-
-            guildCommand = new SlashCommandBuilder()
-                .WithName("create-team")
-                .WithDescription("Team erstellen")
-                .AddOption("name", ApplicationCommandOptionType.String, "Name des Teams", isRequired: true);
-            await guild.CreateApplicationCommandAsync(guildCommand.Build());
-
-            guildCommand = new SlashCommandBuilder()
-                .WithName("delete-team")
-                .WithDescription("Team auflösen");
-            await guild.CreateApplicationCommandAsync(guildCommand.Build());
-
-            guildCommand = new SlashCommandBuilder()
-                .WithName("change-leader")
-                .WithDescription("Anführer wechseln")
-                .AddOption("name", ApplicationCommandOptionType.User, "Name des neuen Anführers", isRequired: true);
-            await guild.CreateApplicationCommandAsync(guildCommand.Build());
-
-            guildCommand = new SlashCommandBuilder()
-                .WithName("add-player")
-                .WithDescription("Spieler hinzufügen")
-                .AddOption("name", ApplicationCommandOptionType.User, "Name des Spielers", isRequired: true);
-            await guild.CreateApplicationCommandAsync(guildCommand.Build());
-
-            guildCommand = new SlashCommandBuilder()
-                .WithName("remove-player")
-                .WithDescription("Spieler entfernen")
-                .AddOption("name", ApplicationCommandOptionType.User, "Name des Spielers", isRequired: true);
-            await guild.CreateApplicationCommandAsync(guildCommand.Build());
-
-
-        }
-        catch (AggregateException ae)
-        {
-            foreach (var e in ae.InnerExceptions)
+            try
             {
-                Console.WriteLine(e.Message);
+                SocketGuild guild = _client.GetGuild(1238457984288296982);
+
+                IReadOnlyCollection<SocketApplicationCommand> guildCommands = await guild.GetApplicationCommandsAsync();
+                IReadOnlyCollection<SocketApplicationCommand> globalCommands = await _client.GetGlobalApplicationCommandsAsync();
+
+                IEnumerable<Task> deleteGuildCommandsTasks = guildCommands.Select(command => command.DeleteAsync());
+                IEnumerable<Task> deleteGlobalCommandsTasks = globalCommands.Select(command => command.DeleteAsync());
+
+                await Task.WhenAll(deleteGuildCommandsTasks);
+                await Task.WhenAll(deleteGlobalCommandsTasks);
+
+                List<Task> tasks = new List<Task>();
+
+                SlashCommandBuilder guildCommand = new SlashCommandBuilder()
+                    .WithName("register")
+                    .WithDescription("Spieler Registrieren")
+                    .AddOption("name", ApplicationCommandOptionType.String, "Name des Valorant Accounts", isRequired: true)
+                    .AddOption("tag", ApplicationCommandOptionType.String, "Tag des Valorant Accounts", isRequired: true)
+                    .AddOption("vtname", ApplicationCommandOptionType.String, "VTuber Name", isRequired: true);
+                tasks.Add(guild.CreateApplicationCommandAsync(guildCommand.Build()));
+
+                guildCommand = new SlashCommandBuilder()
+                    .WithName("unregister")
+                    .WithDescription("Registrierung aufheben");
+                tasks.Add(guild.CreateApplicationCommandAsync(guildCommand.Build()));
+
+                guildCommand = new SlashCommandBuilder()
+                    .WithName("create-team")
+                    .WithDescription("Team erstellen")
+                    .AddOption("name", ApplicationCommandOptionType.String, "Name des Teams", isRequired: true);
+                tasks.Add(guild.CreateApplicationCommandAsync(guildCommand.Build()));
+
+                guildCommand = new SlashCommandBuilder()
+                    .WithName("delete-team")
+                    .WithDescription("Team auflösen");
+                tasks.Add(guild.CreateApplicationCommandAsync(guildCommand.Build()));
+
+                guildCommand = new SlashCommandBuilder()
+                    .WithName("change-leader")
+                    .WithDescription("Anführer wechseln")
+                    .AddOption("name", ApplicationCommandOptionType.User, "Name des neuen Anführers", isRequired: true);
+                tasks.Add(guild.CreateApplicationCommandAsync(guildCommand.Build()));
+
+                guildCommand = new SlashCommandBuilder()
+                    .WithName("add-player")
+                    .WithDescription("Spieler hinzufügen")
+                    .AddOption("name", ApplicationCommandOptionType.User, "Name des Spielers", isRequired: true);
+                tasks.Add(guild.CreateApplicationCommandAsync(guildCommand.Build()));
+
+                guildCommand = new SlashCommandBuilder()
+                    .WithName("remove-player")
+                    .WithDescription("Spieler entfernen")
+                    .AddOption("name", ApplicationCommandOptionType.User, "Name des Spielers", isRequired: true);
+                tasks.Add(guild.CreateApplicationCommandAsync(guildCommand.Build()));
+
+                foreach (Task task in tasks)
+                {
+                    await task;
+                }
+
+
             }
-        }
-        catch (Exception exception)
-        {
-            Console.WriteLine(exception);
-        }
+            catch (AggregateException ae)
+            {
+                foreach (var e in ae.InnerExceptions)
+                {
+                    Console.WriteLine(e.Message);
+                }
+            }
+            catch (Exception exception)
+            {
+                Console.WriteLine(exception);
+            }
+        });
     }
 
     private async Task SlashCommandHandler(SocketSlashCommand command)
@@ -127,7 +137,7 @@ public class DiscordConnection
                     break;
                 case "remove-player":
                     await command.ModifyOriginalResponseAsync(properties => properties.Content = SlashCommands.RemovePlayer(command));
-                    break;  
+                    break;
                 default:
                     await command.ModifyOriginalResponseAsync(properties => properties.Content = "Command not found");
                     break;

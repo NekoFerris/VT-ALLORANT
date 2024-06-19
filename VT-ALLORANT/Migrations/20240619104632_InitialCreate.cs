@@ -14,21 +14,21 @@ namespace VT_ALLORANT.Migrations
                 name: "DiscordUser",
                 columns: table => new
                 {
-                    Id = table.Column<int>(type: "INTEGER", nullable: false)
+                    DiscordUserId = table.Column<int>(type: "INTEGER", nullable: false)
                         .Annotation("Sqlite:Autoincrement", true),
                     Username = table.Column<string>(type: "TEXT", nullable: false),
                     DiscordId = table.Column<ulong>(type: "INTEGER", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_DiscordUser", x => x.Id);
+                    table.PrimaryKey("PK_DiscordUser", x => x.DiscordUserId);
                 });
 
             migrationBuilder.CreateTable(
                 name: "ValorantUser",
                 columns: table => new
                 {
-                    Id = table.Column<int>(type: "INTEGER", nullable: false)
+                    ValorantUserId = table.Column<int>(type: "INTEGER", nullable: false)
                         .Annotation("Sqlite:Autoincrement", true),
                     PUUID = table.Column<string>(type: "TEXT", nullable: false),
                     NAME = table.Column<string>(type: "TEXT", nullable: false),
@@ -36,34 +36,33 @@ namespace VT_ALLORANT.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_ValorantUser", x => x.Id);
+                    table.PrimaryKey("PK_ValorantUser", x => x.ValorantUserId);
                 });
 
             migrationBuilder.CreateTable(
                 name: "Player",
                 columns: table => new
                 {
-                    Id = table.Column<int>(type: "INTEGER", nullable: false)
+                    PlayerId = table.Column<int>(type: "INTEGER", nullable: false)
                         .Annotation("Sqlite:Autoincrement", true),
                     Name = table.Column<string>(type: "TEXT", nullable: false),
                     DiscordUserId = table.Column<int>(type: "INTEGER", nullable: false),
-                    ValorantUserId = table.Column<int>(type: "INTEGER", nullable: false),
-                    TeamId = table.Column<int>(type: "INTEGER", nullable: true)
+                    ValorantUserId = table.Column<int>(type: "INTEGER", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Player", x => x.Id);
+                    table.PrimaryKey("PK_Player", x => x.PlayerId);
                     table.ForeignKey(
                         name: "FK_Player_DiscordUser_DiscordUserId",
                         column: x => x.DiscordUserId,
                         principalTable: "DiscordUser",
-                        principalColumn: "Id",
+                        principalColumn: "DiscordUserId",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
                         name: "FK_Player_ValorantUser_ValorantUserId",
                         column: x => x.ValorantUserId,
                         principalTable: "ValorantUser",
-                        principalColumn: "Id",
+                        principalColumn: "ValorantUserId",
                         onDelete: ReferentialAction.Cascade);
                 });
 
@@ -71,19 +70,43 @@ namespace VT_ALLORANT.Migrations
                 name: "Team",
                 columns: table => new
                 {
-                    Id = table.Column<int>(type: "INTEGER", nullable: false)
+                    TeamId = table.Column<int>(type: "INTEGER", nullable: false)
                         .Annotation("Sqlite:Autoincrement", true),
                     Name = table.Column<string>(type: "TEXT", nullable: false),
                     LeaderId = table.Column<int>(type: "INTEGER", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Team", x => x.Id);
+                    table.PrimaryKey("PK_Team", x => x.TeamId);
                     table.ForeignKey(
                         name: "FK_Team_Player_LeaderId",
                         column: x => x.LeaderId,
                         principalTable: "Player",
-                        principalColumn: "Id",
+                        principalColumn: "PlayerId",
+                        onDelete: ReferentialAction.Restrict);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "PlayersInTeams",
+                columns: table => new
+                {
+                    PlayersPlayerId = table.Column<int>(type: "INTEGER", nullable: false),
+                    TeamsTeamId = table.Column<int>(type: "INTEGER", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_PlayersInTeams", x => new { x.PlayersPlayerId, x.TeamsTeamId });
+                    table.ForeignKey(
+                        name: "FK_PlayersInTeams_Player_PlayersPlayerId",
+                        column: x => x.PlayersPlayerId,
+                        principalTable: "Player",
+                        principalColumn: "PlayerId",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_PlayersInTeams_Team_TeamsTeamId",
+                        column: x => x.TeamsTeamId,
+                        principalTable: "Team",
+                        principalColumn: "TeamId",
                         onDelete: ReferentialAction.Cascade);
                 });
 
@@ -93,47 +116,36 @@ namespace VT_ALLORANT.Migrations
                 column: "DiscordUserId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Player_TeamId",
-                table: "Player",
-                column: "TeamId");
-
-            migrationBuilder.CreateIndex(
                 name: "IX_Player_ValorantUserId",
                 table: "Player",
                 column: "ValorantUserId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_PlayersInTeams_TeamsTeamId",
+                table: "PlayersInTeams",
+                column: "TeamsTeamId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Team_LeaderId",
                 table: "Team",
-                column: "LeaderId");
-
-            migrationBuilder.AddForeignKey(
-                name: "FK_Player_Team_TeamId",
-                table: "Player",
-                column: "TeamId",
-                principalTable: "Team",
-                principalColumn: "Id");
+                column: "LeaderId",
+                unique: true);
         }
 
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.DropForeignKey(
-                name: "FK_Player_DiscordUser_DiscordUserId",
-                table: "Player");
-
-            migrationBuilder.DropForeignKey(
-                name: "FK_Player_Team_TeamId",
-                table: "Player");
-
             migrationBuilder.DropTable(
-                name: "DiscordUser");
+                name: "PlayersInTeams");
 
             migrationBuilder.DropTable(
                 name: "Team");
 
             migrationBuilder.DropTable(
                 name: "Player");
+
+            migrationBuilder.DropTable(
+                name: "DiscordUser");
 
             migrationBuilder.DropTable(
                 name: "ValorantUser");

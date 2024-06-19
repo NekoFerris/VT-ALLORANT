@@ -1,6 +1,7 @@
 using System.ComponentModel.DataAnnotations.Schema;
 using System.ComponentModel.DataAnnotations;
 using VT_ALLORANT.Controller;
+using Microsoft.EntityFrameworkCore;
 
 namespace VT_ALLORANT.Model;
 
@@ -10,8 +11,10 @@ public class Team
 
     // Properties
     [Key]
-    public int Id { get; set; }  // Unique ID of the team
+    [ForeignKey("TeamId")]
+    public int TeamId { get; set; }  // Unique ID of the team
     public string Name { get; set; } = "unset"; // Default value "unset
+    public int? LeaderId { get; set; } // Default value null
     public Player Leader { get; set; }  // Leader of the team
     public List<Player> Players { get; set; } = []; // Default value new List<Player>()
 
@@ -50,6 +53,7 @@ public class Team
     public void InsertTeam()
     {
         DBTeam dBAccess = new();
+        dBAccess.Entry(this.Leader).State = EntityState.Unchanged;
         dBAccess.Add(this);
     }
 

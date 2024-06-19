@@ -12,12 +12,14 @@ public class Player
     // Properties
     [Key]
     [ForeignKey("PlayerId")]
-    public int Id { get; set; }  // Unique ID of the player
+    public int PlayerId { get; set; }  // Unique ID of the player
     public string Name { get; set; } = "unset"; // Default value "unset
+    public int DiscordUserId { get; set; }  // Discord User ID
     public DiscordUser DiscordUser { get; set; }  // Discord User
+    public int ValorantUserId { get; set; }  // Valorant User ID
     public ValorantUser ValorantUser { get; set; }  // Valorant User
-
-
+    [NotMapped]
+    public List<Team>? Teams { get; set; } // Team of the player
     // Constructor
     public Player()
     {

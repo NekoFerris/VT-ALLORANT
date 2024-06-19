@@ -3,7 +3,7 @@ public class Game
 {
     // Class members (fields, properties, methods, etc.) go here
     // Fields
-    public int Id { get; set; }  // Unique ID of the game
+    public int GameId { get; set; }  // Unique ID of the game
     public Team Team1{ get; set; } 
     public Team Team2{ get; set; } 
 

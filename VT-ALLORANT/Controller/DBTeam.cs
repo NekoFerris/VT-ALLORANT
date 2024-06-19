@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using VT_ALLORANT.Model;
 
 namespace VT_ALLORANT.Controller
@@ -10,8 +11,28 @@ namespace VT_ALLORANT.Controller
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
+            #if DEBUG
+            optionsBuilder.EnableSensitiveDataLogging();
+            base.OnConfiguring(optionsBuilder);
+            optionsBuilder.UseSqlite("Data Source=database.db").LogTo(Console.WriteLine, LogLevel.Information);
+            #else
             base.OnConfiguring(optionsBuilder);
             optionsBuilder.UseSqlite("Data Source=database.db");
+            #endif
+        }
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            modelBuilder.Entity<Team>()
+                .HasMany(e => e.Players)
+                .WithMany(e => e.Teams)
+                .UsingEntity("PlayersInTeams");
+
+            modelBuilder.Entity<Team>()
+                .HasOne(e => e.Leader)
+                .WithOne()
+                .HasForeignKey<Team>(e => e.LeaderId)
+                .IsRequired(true)
+                .OnDelete(DeleteBehavior.Restrict);
         }
 
         public void DBAccess()

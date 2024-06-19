@@ -17,9 +17,24 @@ namespace VT_ALLORANT.Migrations
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "8.0.4");
 
+            modelBuilder.Entity("PlayersInTeams", b =>
+                {
+                    b.Property<int>("PlayersPlayerId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("TeamsTeamId")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("PlayersPlayerId", "TeamsTeamId");
+
+                    b.HasIndex("TeamsTeamId");
+
+                    b.ToTable("PlayersInTeams");
+                });
+
             modelBuilder.Entity("VT_ALLORANT.Model.Discord.DiscordUser", b =>
                 {
-                    b.Property<int>("Id")
+                    b.Property<int>("DiscordUserId")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("INTEGER");
 
@@ -30,14 +45,14 @@ namespace VT_ALLORANT.Migrations
                         .IsRequired()
                         .HasColumnType("TEXT");
 
-                    b.HasKey("Id");
+                    b.HasKey("DiscordUserId");
 
                     b.ToTable("DiscordUser");
                 });
 
             modelBuilder.Entity("VT_ALLORANT.Model.Player", b =>
                 {
-                    b.Property<int>("Id")
+                    b.Property<int>("PlayerId")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("INTEGER");
 
@@ -48,17 +63,12 @@ namespace VT_ALLORANT.Migrations
                         .IsRequired()
                         .HasColumnType("TEXT");
 
-                    b.Property<int?>("TeamId")
-                        .HasColumnType("INTEGER");
-
                     b.Property<int>("ValorantUserId")
                         .HasColumnType("INTEGER");
 
-                    b.HasKey("Id");
+                    b.HasKey("PlayerId");
 
                     b.HasIndex("DiscordUserId");
-
-                    b.HasIndex("TeamId");
 
                     b.HasIndex("ValorantUserId");
 
@@ -67,27 +77,29 @@ namespace VT_ALLORANT.Migrations
 
             modelBuilder.Entity("VT_ALLORANT.Model.Team", b =>
                 {
-                    b.Property<int>("Id")
+                    b.Property<int>("TeamId")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("INTEGER");
 
-                    b.Property<int>("LeaderId")
+                    b.Property<int?>("LeaderId")
+                        .IsRequired()
                         .HasColumnType("INTEGER");
 
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasColumnType("TEXT");
 
-                    b.HasKey("Id");
+                    b.HasKey("TeamId");
 
-                    b.HasIndex("LeaderId");
+                    b.HasIndex("LeaderId")
+                        .IsUnique();
 
                     b.ToTable("Team");
                 });
 
             modelBuilder.Entity("VT_ALLORANT.Model.Valorant.ValorantUser", b =>
                 {
-                    b.Property<int>("Id")
+                    b.Property<int>("ValorantUserId")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("INTEGER");
 
@@ -103,9 +115,24 @@ namespace VT_ALLORANT.Migrations
                         .IsRequired()
                         .HasColumnType("TEXT");
 
-                    b.HasKey("Id");
+                    b.HasKey("ValorantUserId");
 
                     b.ToTable("ValorantUser");
+                });
+
+            modelBuilder.Entity("PlayersInTeams", b =>
+                {
+                    b.HasOne("VT_ALLORANT.Model.Player", null)
+                        .WithMany()
+                        .HasForeignKey("PlayersPlayerId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("VT_ALLORANT.Model.Team", null)
+                        .WithMany()
+                        .HasForeignKey("TeamsTeamId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("VT_ALLORANT.Model.Player", b =>
@@ -115,10 +142,6 @@ namespace VT_ALLORANT.Migrations
                         .HasForeignKey("DiscordUserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
-
-                    b.HasOne("VT_ALLORANT.Model.Team", null)
-                        .WithMany("Players")
-                        .HasForeignKey("TeamId");
 
                     b.HasOne("VT_ALLORANT.Model.Valorant.ValorantUser", "ValorantUser")
                         .WithMany()
@@ -134,17 +157,12 @@ namespace VT_ALLORANT.Migrations
             modelBuilder.Entity("VT_ALLORANT.Model.Team", b =>
                 {
                     b.HasOne("VT_ALLORANT.Model.Player", "Leader")
-                        .WithMany()
-                        .HasForeignKey("LeaderId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .WithOne()
+                        .HasForeignKey("VT_ALLORANT.Model.Team", "LeaderId")
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.Navigation("Leader");
-                });
-
-            modelBuilder.Entity("VT_ALLORANT.Model.Team", b =>
-                {
-                    b.Navigation("Players");
                 });
 #pragma warning restore 612, 618
         }
