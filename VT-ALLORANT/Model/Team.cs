@@ -2,6 +2,10 @@ using System.ComponentModel.DataAnnotations.Schema;
 using System.ComponentModel.DataAnnotations;
 using VT_ALLORANT.Controller;
 using Microsoft.EntityFrameworkCore;
+using System.Reactive.Linq;
+using VT_ALLORANT.Model.Valorant;
+using VT_ALLORANT.Model.Discord;
+using Microsoft.EntityFrameworkCore.ChangeTracking;
 
 namespace VT_ALLORANT.Model;
 
@@ -9,73 +13,81 @@ namespace VT_ALLORANT.Model;
 public class Team
 {
 
-    // Properties
     [Key]
     [ForeignKey("TeamId")]
-    public int TeamId { get; set; }  // Unique ID of the team
-    public string Name { get; set; } = "unset"; // Default value "unset
-    public int? LeaderId { get; set; } // Default value null
-    public Player Leader { get; set; }  // Leader of the team
-    public List<Player> Players { get; set; } = []; // Default value new List<Player>()
+    public int TeamId { get; set; }
+    public string Name { get; set; } = "unset";
+    public int? LeaderId { get; set; }
+    public Player Leader { get; set; }
+    public ICollection<Player> Players { get; set; } = [];
 
-    // Constructor
     public Team()
     {
 
     }
 
-    public static Team CreateTeam(string name, Player leader)
+    public static void CreateTeam(string name, Player leader)
     {
-        return new Team()
+        using DBAccess dBAccess = new();
+        dBAccess.Teams.Add(new Team()
         {
             Name = name,
-            Leader = leader,
-            Players = new List<Player>() { leader }
-        };
+            Leader = leader
+        });
+        dBAccess.SaveChanges();
     }
 
-    // Methods
-    // Add a player to the team
     public void AddPlayer(Player player)
     {
-        Players.Add(player);
-        SaveChanges();
+        using DBAccess dBAccess = new();
+        dBAccess.TeamPlayers.Attach(new TeamPlayer()
+        {
+            Team = this,
+            Player = player
+        });
+        dBAccess.SaveChanges();
     }
 
-    // Remove a player from the team
     public void RemovePlayer(Player player)
     {
-        Players.Remove(player);
-        SaveChanges();
-    }
-    // Methods
-    // Add your custom methods here
-    public void InsertTeam()
-    {
-        DBTeam dBAccess = new();
-        dBAccess.Entry(this.Leader).State = EntityState.Unchanged;
-        dBAccess.Add(this);
+        using DBAccess dBAccess = new();
+        dBAccess.TeamPlayers.Remove(dBAccess.TeamPlayers.Find(this.TeamId, player.PlayerId));
+        dBAccess.SaveChanges();
     }
 
     public static Team LoadTeam(int id)
     {
-        DBTeam dBAccess = new();
-        return dBAccess.GetById(id);
+        using DBAccess dBAccess = new();
+        Team t = dBAccess.Teams.Find(id);
+        t.Leader = Player.LoadPlayer(t.LeaderId);
+        t.Players = Player.GetPlayersForTeam(t);
+        return t;
     }
-    public void SaveChanges()
+
+    public static Team LoadTeam(Player leader)
     {
-        DBTeam dBAccess = new();
-        dBAccess.Update(this);
+        using DBAccess dBAccess = new();
+        Team t = dBAccess.Teams.FirstOrDefault(t => t.LeaderId == leader.PlayerId) ?? throw new Exception($"Team für Spieler {leader.DiscordUser.Username} nicht gefunden");
+        t.Players = Player.GetPlayersForTeam(t);
+        t.Leader = t.Players.FirstOrDefault(p => p.PlayerId == t.LeaderId) ?? throw new Exception($"Anführer für Team {t.Name} nicht gefunden");
+        return t;
     }
+
     public void Delete()
     {
-       DBTeam dBAccess = new();
-        dBAccess.Delete(this);
+        using DBAccess dBAccess = new();
+        dBAccess.Remove(this);
     }
 
     public static List<Team> GetAll()
     {
-        DBTeam dBAccess = new();
-        return dBAccess.GetAll();
+        using DBAccess dBAccess = new();
+        return dBAccess.Teams.ToList();
+    }
+
+    internal void Update()
+    {
+        using DBAccess dBAccess = new();
+        dBAccess.Update(this);
     }
 }

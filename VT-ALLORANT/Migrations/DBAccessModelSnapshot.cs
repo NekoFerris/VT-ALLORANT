@@ -2,7 +2,6 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
-using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using VT_ALLORANT.Controller;
 
@@ -10,29 +9,27 @@ using VT_ALLORANT.Controller;
 
 namespace VT_ALLORANT.Migrations
 {
-    [DbContext(typeof(DBTeam))]
-    [Migration("20240619104632_InitialCreate")]
-    partial class InitialCreate
+    [DbContext(typeof(DBAccess))]
+    partial class DBAccessModelSnapshot : ModelSnapshot
     {
-        /// <inheritdoc />
-        protected override void BuildTargetModel(ModelBuilder modelBuilder)
+        protected override void BuildModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "8.0.4");
 
-            modelBuilder.Entity("PlayersInTeams", b =>
+            modelBuilder.Entity("TeamPlayer", b =>
                 {
-                    b.Property<int>("PlayersPlayerId")
+                    b.Property<int>("PlayerId")
                         .HasColumnType("INTEGER");
 
-                    b.Property<int>("TeamsTeamId")
+                    b.Property<int>("TeamId")
                         .HasColumnType("INTEGER");
 
-                    b.HasKey("PlayersPlayerId", "TeamsTeamId");
+                    b.HasKey("PlayerId", "TeamId");
 
-                    b.HasIndex("TeamsTeamId");
+                    b.HasIndex("TeamId");
 
-                    b.ToTable("PlayersInTeams");
+                    b.ToTable("TeamPlayer", (string)null);
                 });
 
             modelBuilder.Entity("VT_ALLORANT.Model.Discord.DiscordUser", b =>
@@ -53,6 +50,32 @@ namespace VT_ALLORANT.Migrations
                     b.ToTable("DiscordUser");
                 });
 
+            modelBuilder.Entity("VT_ALLORANT.Model.Game", b =>
+                {
+                    b.Property<int>("GameId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("Team1TeamId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("Team2TeamId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int?>("WinnerTeamId")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("GameId");
+
+                    b.HasIndex("Team1TeamId");
+
+                    b.HasIndex("Team2TeamId");
+
+                    b.HasIndex("WinnerTeamId");
+
+                    b.ToTable("Games");
+                });
+
             modelBuilder.Entity("VT_ALLORANT.Model.Player", b =>
                 {
                     b.Property<int>("PlayerId")
@@ -71,9 +94,11 @@ namespace VT_ALLORANT.Migrations
 
                     b.HasKey("PlayerId");
 
-                    b.HasIndex("DiscordUserId");
+                    b.HasIndex("DiscordUserId")
+                        .IsUnique();
 
-                    b.HasIndex("ValorantUserId");
+                    b.HasIndex("ValorantUserId")
+                        .IsUnique();
 
                     b.ToTable("Player");
                 });
@@ -123,32 +148,61 @@ namespace VT_ALLORANT.Migrations
                     b.ToTable("ValorantUser");
                 });
 
-            modelBuilder.Entity("PlayersInTeams", b =>
+            modelBuilder.Entity("TeamPlayer", b =>
                 {
-                    b.HasOne("VT_ALLORANT.Model.Player", null)
+                    b.HasOne("VT_ALLORANT.Model.Player", "Player")
                         .WithMany()
-                        .HasForeignKey("PlayersPlayerId")
+                        .HasForeignKey("PlayerId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("VT_ALLORANT.Model.Team", null)
+                    b.HasOne("VT_ALLORANT.Model.Team", "Team")
                         .WithMany()
-                        .HasForeignKey("TeamsTeamId")
+                        .HasForeignKey("TeamId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+
+                    b.Navigation("Player");
+
+                    b.Navigation("Team");
+                });
+
+            modelBuilder.Entity("VT_ALLORANT.Model.Game", b =>
+                {
+                    b.HasOne("VT_ALLORANT.Model.Team", "Team1")
+                        .WithMany()
+                        .HasForeignKey("Team1TeamId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("VT_ALLORANT.Model.Team", "Team2")
+                        .WithMany()
+                        .HasForeignKey("Team2TeamId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("VT_ALLORANT.Model.Team", "Winner")
+                        .WithMany()
+                        .HasForeignKey("WinnerTeamId");
+
+                    b.Navigation("Team1");
+
+                    b.Navigation("Team2");
+
+                    b.Navigation("Winner");
                 });
 
             modelBuilder.Entity("VT_ALLORANT.Model.Player", b =>
                 {
                     b.HasOne("VT_ALLORANT.Model.Discord.DiscordUser", "DiscordUser")
-                        .WithMany()
-                        .HasForeignKey("DiscordUserId")
+                        .WithOne()
+                        .HasForeignKey("VT_ALLORANT.Model.Player", "DiscordUserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.HasOne("VT_ALLORANT.Model.Valorant.ValorantUser", "ValorantUser")
-                        .WithMany()
-                        .HasForeignKey("ValorantUserId")
+                        .WithOne()
+                        .HasForeignKey("VT_ALLORANT.Model.Player", "ValorantUserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 

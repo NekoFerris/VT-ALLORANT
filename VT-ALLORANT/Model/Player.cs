@@ -18,8 +18,7 @@ public class Player
     public DiscordUser DiscordUser { get; set; }  // Discord User
     public int ValorantUserId { get; set; }  // Valorant User ID
     public ValorantUser ValorantUser { get; set; }  // Valorant User
-    [NotMapped]
-    public List<Team>? Teams { get; set; } // Team of the player
+    public ICollection<Team>? Teams { get; set; } // Team of the player
     // Constructor
     public Player()
     {
@@ -38,36 +37,66 @@ public class Player
 
     public void InsertPlayer()
     {
-        DBPlayer dBAccess = new();
+        DBAccess dBAccess = new();
         dBAccess.Add(this);
+        dBAccess.SaveChanges();
     }
 
-    public static Player LoadPlayer(int id)
+    public void DeletePlayer()
     {
-        DBPlayer dBAccess = new();
-        return dBAccess.GetById(id);
+        DBAccess dBAccess = new();
+        dBAccess.Remove(this);
+        dBAccess.SaveChanges();
+    }
+
+    public static Player LoadPlayer(int? id)
+    {
+        DBAccess dBAccess = new();
+        Player player = dBAccess.Players.Find(id);
+        player.DiscordUser = DiscordUser.LoadUser(player.DiscordUserId);
+        player.ValorantUser = ValorantUser.LoadUser(player.ValorantUserId);
+        return player;
     }
 
     internal static Player LoadPlayer(ulong id)
     {
-        DBPlayer dBAccess = new();
-        return dBAccess.GetByDiscordID(id);
-    }
-
-    public void SaveChanges()
-    {
-        DBPlayer dBAccess = new();
-        dBAccess.Update(this);
-    }
-    public void DeletePlayer()
-    {
-       DBPlayer dBAccess = new();
-        dBAccess.Delete(this);
+        DBAccess dBAccess = new();
+        Player player = dBAccess.Players.FirstOrDefault(player => player.DiscordUser.DiscordId == id);
+        player.DiscordUser = DiscordUser.LoadUser(player.DiscordUserId);
+        player.ValorantUser = ValorantUser.LoadUser(player.ValorantUserId);
+        return player;
     }
 
     public static List<Player> GetAll()
     {
-        DBPlayer dBAccess = new();
-        return dBAccess.GetAll();
+        DBAccess dBAccess = new();
+        List<Player> players = dBAccess.Players.ToList();
+        foreach (Player player in players)
+        {
+            player.DiscordUser = DiscordUser.LoadUser(player.DiscordUserId);
+            player.ValorantUser = ValorantUser.LoadUser(player.ValorantUserId);
+        }
+        return players;
+    }
+
+    public static Player GetPlayerByDiscordUserName(string name)
+    {
+        DBAccess dBAccess = new();
+        Player player = dBAccess.Players.FirstOrDefault(player => player.DiscordUser.Username == name);
+        player.DiscordUser = DiscordUser.LoadUser(player.DiscordUserId);
+        player.ValorantUser = ValorantUser.LoadUser(player.ValorantUserId);
+        return player;
+    }
+
+    internal static List<Player> GetPlayersForTeam(Team t)
+    {
+        DBAccess dBAccess = new();
+        List<Player> players = dBAccess.Players.Where(player => player.Teams.Contains(t)).ToList();
+        foreach (Player player in players)
+        {
+            player.DiscordUser = DiscordUser.LoadUser(player.DiscordUserId);
+            player.ValorantUser = ValorantUser.LoadUser(player.ValorantUserId);
+        }
+        return players;
     }
 }

@@ -26,6 +26,4 @@ public class Tournament
     {
         Teams.Remove(team);
     }
-
-    // Other methods and properties can be added as needed
 }

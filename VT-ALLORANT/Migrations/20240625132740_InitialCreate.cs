@@ -87,56 +87,108 @@ namespace VT_ALLORANT.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "PlayersInTeams",
+                name: "Games",
                 columns: table => new
                 {
-                    PlayersPlayerId = table.Column<int>(type: "INTEGER", nullable: false),
-                    TeamsTeamId = table.Column<int>(type: "INTEGER", nullable: false)
+                    GameId = table.Column<int>(type: "INTEGER", nullable: false)
+                        .Annotation("Sqlite:Autoincrement", true),
+                    Team1TeamId = table.Column<int>(type: "INTEGER", nullable: false),
+                    Team2TeamId = table.Column<int>(type: "INTEGER", nullable: false),
+                    WinnerTeamId = table.Column<int>(type: "INTEGER", nullable: true)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_PlayersInTeams", x => new { x.PlayersPlayerId, x.TeamsTeamId });
+                    table.PrimaryKey("PK_Games", x => x.GameId);
                     table.ForeignKey(
-                        name: "FK_PlayersInTeams_Player_PlayersPlayerId",
-                        column: x => x.PlayersPlayerId,
+                        name: "FK_Games_Team_Team1TeamId",
+                        column: x => x.Team1TeamId,
+                        principalTable: "Team",
+                        principalColumn: "TeamId",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_Games_Team_Team2TeamId",
+                        column: x => x.Team2TeamId,
+                        principalTable: "Team",
+                        principalColumn: "TeamId",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_Games_Team_WinnerTeamId",
+                        column: x => x.WinnerTeamId,
+                        principalTable: "Team",
+                        principalColumn: "TeamId");
+                });
+
+            migrationBuilder.CreateTable(
+                name: "TeamPlayer",
+                columns: table => new
+                {
+                    TeamId = table.Column<int>(type: "INTEGER", nullable: false),
+                    PlayerId = table.Column<int>(type: "INTEGER", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_TeamPlayer", x => new { x.PlayerId, x.TeamId });
+                    table.ForeignKey(
+                        name: "FK_TeamPlayer_Player_PlayerId",
+                        column: x => x.PlayerId,
                         principalTable: "Player",
                         principalColumn: "PlayerId",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
-                        name: "FK_PlayersInTeams_Team_TeamsTeamId",
-                        column: x => x.TeamsTeamId,
+                        name: "FK_TeamPlayer_Team_TeamId",
+                        column: x => x.TeamId,
                         principalTable: "Team",
                         principalColumn: "TeamId",
                         onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateIndex(
+                name: "IX_Games_Team1TeamId",
+                table: "Games",
+                column: "Team1TeamId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Games_Team2TeamId",
+                table: "Games",
+                column: "Team2TeamId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Games_WinnerTeamId",
+                table: "Games",
+                column: "WinnerTeamId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Player_DiscordUserId",
                 table: "Player",
-                column: "DiscordUserId");
+                column: "DiscordUserId",
+                unique: true);
 
             migrationBuilder.CreateIndex(
                 name: "IX_Player_ValorantUserId",
                 table: "Player",
-                column: "ValorantUserId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_PlayersInTeams_TeamsTeamId",
-                table: "PlayersInTeams",
-                column: "TeamsTeamId");
+                column: "ValorantUserId",
+                unique: true);
 
             migrationBuilder.CreateIndex(
                 name: "IX_Team_LeaderId",
                 table: "Team",
                 column: "LeaderId",
                 unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_TeamPlayer_TeamId",
+                table: "TeamPlayer",
+                column: "TeamId");
         }
 
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(
-                name: "PlayersInTeams");
+                name: "Games");
+
+            migrationBuilder.DropTable(
+                name: "TeamPlayer");
 
             migrationBuilder.DropTable(
                 name: "Team");

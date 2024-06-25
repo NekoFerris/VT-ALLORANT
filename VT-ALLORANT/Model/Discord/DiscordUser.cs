@@ -26,36 +26,39 @@ public class DiscordUser
     }
     public void InsertUser()
     {
-        DBDiscordUser dBAccess = new();
+        DBAccess dBAccess = new();
         dBAccess.Add(this);
+        dBAccess.SaveChanges();
     }
     public void SaveChanges()
     {
-        DBDiscordUser dBAccess = new();
+        DBAccess dBAccess = new();
         dBAccess.Update(this);
+        dBAccess.SaveChanges();
     }
 
     public void DeleteUser()
     {
-        DBDiscordUser dBAccess = new();
-        dBAccess.Delete(this);
+        DBAccess dBAccess = new();
+        dBAccess.Remove(this);
+        dBAccess.SaveChanges();
     }
 
     public static DiscordUser LoadUser(int Id)
     {
-        DBDiscordUser dBAccess = new();
-        return dBAccess.GetById(Id);
+        DBAccess dBAccess = new();
+        return dBAccess.DiscordUsers.Find(Id);
     }
 
     public static DiscordUser LoadUser(ulong Id)
     {
-        DBDiscordUser dBAccess = new();
-        return dBAccess.GetByUUID(Id);
+        DBAccess dBAccess = new();
+        return dBAccess.DiscordUsers.Find(Id);
     }
 
     public static List<DiscordUser> GetAll()
     {
-        DBDiscordUser dBAccess = new();
-        return dBAccess.GetAll();
+        DBAccess dBAccess = new();
+        return dBAccess.DiscordUsers.ToList();
     }
 }
