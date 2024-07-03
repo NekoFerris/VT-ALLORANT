@@ -20,7 +20,7 @@ namespace VT_ALLORANT.Model.Discord
             }
             catch (Exception e)
             {
-                return "Riot Account nicht gefunden";
+                return "Riot Account nicht gefunden, wenn du glaubst das es ein Fehler ist, kontaktiere bitte einen Admin";
             }
             DiscordUser discordUser = new()
             {
@@ -49,7 +49,7 @@ namespace VT_ALLORANT.Model.Discord
         }
 
         public static string CreateTeam(SocketSlashCommand command)
-        { 
+        {
             Team.CreateTeam(command.Data.Options.ToList()[0].Value.ToString().Trim(), Player.LoadPlayer(command.User.Id));
             return $"Team {command.Data.Options.ToList()[0].Value.ToString().Trim()} erstellt";
         }
@@ -59,7 +59,12 @@ namespace VT_ALLORANT.Model.Discord
             Team team;
             try
             {
+                Player leader = Player.LoadPlayer(command.User.Id);
                 team = Team.LoadTeam(Player.LoadPlayer(command.User.Id));
+                if (leader.PlayerId != team.Leader.PlayerId)
+                {
+                    throw new Exception($"Du bist nicht der Anführer des Teams {team.Name}");
+                }
                 team.Delete();
             }
             catch (Exception e)
@@ -73,22 +78,30 @@ namespace VT_ALLORANT.Model.Discord
         {
             Team team;
             Player playerToAdd;
-            //try
+            try
             {
-            Player leader = Player.LoadPlayer(command.User.Id);
-            team = Team.LoadTeam(leader);
-            if (leader.PlayerId != team.Leader.PlayerId)
+                Player leader = Player.LoadPlayer(command.User.Id);
+                team = Team.LoadTeam(leader);
+                if (leader.PlayerId != team.Leader.PlayerId)
+                {
+                    throw new Exception($"Du bist nicht der Anführer des Teams {team.Name}");
+                }
+                if (team.Players.Count >= team.MaxPlayers)
+                {
+                    throw new Exception("Das Team ist bereits voll");
+                }
+                playerToAdd = Player.GetPlayerByDiscordUserName(command.Data.Options.ToList()[0].Value.ToString().Trim());
+                if (team.Players.Contains(playerToAdd))
+                {
+                    throw new Exception($"{playerToAdd.Name} ist bereits im Team");
+                }
+                team.AddPlayer(playerToAdd);
+            }
+            catch (Exception e)
             {
-                throw new Exception("Du bist nicht der Anführer dieses Teams");
+                return e.Message;
             }
-            playerToAdd = Player.GetPlayerByDiscordUserName(command.Data.Options.ToList()[0].Value.ToString().Trim());
-            team.AddPlayer(playerToAdd);
-            }
-            //catch (Exception e)
-            {
-                //return e.Message;
-            }
-            return $"Spieler {playerToAdd.Name} wurde zu Team {team.Name} hinzugefügt";
+            return $"{playerToAdd.Name} wurde zu Team {team.Name} hinzugefügt";
         }
 
         public static string RemovePlayer(SocketSlashCommand command)
@@ -97,15 +110,24 @@ namespace VT_ALLORANT.Model.Discord
             Player playerToRemove;
             try
             {
-            team = Team.LoadTeam(Player.LoadPlayer(command.User.Id));
-            playerToRemove = Player.GetPlayerByDiscordUserName(command.Data.Options.ToList()[0].Value.ToString().Trim());
-            team.RemovePlayer(playerToRemove);
+                Player leader = Player.LoadPlayer(command.User.Id);
+                team = Team.LoadTeam(leader);
+                if (leader.PlayerId != team.Leader.PlayerId)
+                {
+                    throw new Exception("Du bist nicht der Anführer dieses Teams");
+                }
+                playerToRemove = Player.GetPlayerByDiscordUserName(command.Data.Options.ToList()[0].Value.ToString().Trim());
+                if (team.Players.Contains(playerToRemove))
+                {
+                    throw new Exception($"{playerToRemove.Name} nicht teil des Teams");
+                }
+                team.RemovePlayer(playerToRemove);
             }
             catch (Exception e)
             {
                 return e.Message;
             }
-            return $"Spieler {playerToRemove.Name} wurde vom Team {team.Name} entfernt";
+            return $"{playerToRemove.Name} wurde vom Team {team.Name} entfernt";
         }
 
         internal static string ChangeLeader(SocketSlashCommand command)
@@ -114,16 +136,28 @@ namespace VT_ALLORANT.Model.Discord
             Player newLeader;
             try
             {
-            team = Team.LoadTeam(Player.LoadPlayer(command.User.Id));
-            newLeader = Player.GetPlayerByDiscordUserName(command.Data.Options.ToList()[0].Value.ToString().Trim());
-            team.Leader = newLeader;
-            team.Update();
+                Player leader = Player.LoadPlayer(command.User.Id);
+                team = Team.LoadTeam(leader);
+                if (leader.PlayerId != team.Leader.PlayerId)
+                {
+                    throw new Exception("Du bist nicht der Anführer dieses Teams");
+                }
+                newLeader = Player.GetPlayerByDiscordUserName(command.Data.Options.ToList()[0].Value.ToString().Trim());
+                if (newLeader.PlayerId == team.Leader.PlayerId)
+                {
+                    throw new Exception("Du bist bereits der Anführer dieses Teams");
+                }
+                if (team.Players.Contains(newLeader))
+                {
+                    throw new Exception("Spieler nicht teil des Teams");
+                }
+                team.SetLeader(newLeader);
             }
             catch (Exception e)
             {
                 return e.Message;
             }
-            return $"Spieler {newLeader.Name} ist jetzt der Anführer vom Team {team.Name}";
+            return $"{newLeader.Name} ist jetzt der Anführer vom Team {team.Name}";
         }
     }
 }

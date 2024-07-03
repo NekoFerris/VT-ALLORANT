@@ -17,6 +17,10 @@ public class DiscordConnection
         _client = new DiscordSocketClient(config);
         _client.Log += Log;
         _client.SlashCommandExecuted += SlashCommandHandler;
+        _client.Ready += async () =>
+        {
+            await CreateCommands();
+        };
         await _client.LoginAsync(TokenType.Bot, "MTIzODQ1OTkwMDc2MjI2MzYwMw.GyMKKB.LvrgEdIf_QUS53Zo1hhS6b9sjnLb9Y3dd_ZoYg");
         await _client.StartAsync();
     }

@@ -18,7 +18,6 @@ public class BotBase
     public async Task Start()
     {
         await DiscordConnection.RunBotAsync();
-        await DiscordConnection.CreateCommands();
     }
 
     public void Stop()

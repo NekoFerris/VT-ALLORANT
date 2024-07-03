@@ -11,7 +11,7 @@ using VT_ALLORANT.Controller;
 namespace VT_ALLORANT.Migrations
 {
     [DbContext(typeof(DBAccess))]
-    [Migration("20240625132740_InitialCreate")]
+    [Migration("20240626094449_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -59,22 +59,39 @@ namespace VT_ALLORANT.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("INTEGER");
 
-                    b.Property<int>("Team1TeamId")
+                    b.Property<int?>("ModeratorId")
+                        .IsRequired()
                         .HasColumnType("INTEGER");
 
-                    b.Property<int>("Team2TeamId")
+                    b.Property<int?>("Team1Id")
+                        .IsRequired()
                         .HasColumnType("INTEGER");
 
-                    b.Property<int?>("WinnerTeamId")
+                    b.Property<int?>("Team2Id")
+                        .IsRequired()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("TournamentId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int?>("WinnerId")
                         .HasColumnType("INTEGER");
 
                     b.HasKey("GameId");
 
-                    b.HasIndex("Team1TeamId");
+                    b.HasIndex("ModeratorId")
+                        .IsUnique();
 
-                    b.HasIndex("Team2TeamId");
+                    b.HasIndex("Team1Id")
+                        .IsUnique();
 
-                    b.HasIndex("WinnerTeamId");
+                    b.HasIndex("Team2Id")
+                        .IsUnique();
+
+                    b.HasIndex("TournamentId");
+
+                    b.HasIndex("WinnerId")
+                        .IsUnique();
 
                     b.ToTable("Games");
                 });
@@ -128,6 +145,69 @@ namespace VT_ALLORANT.Migrations
                     b.ToTable("Team");
                 });
 
+            modelBuilder.Entity("VT_ALLORANT.Model.Tournament", b =>
+                {
+                    b.Property<int>("TournamentId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("TournamentId");
+
+                    b.ToTable("Tournament");
+                });
+
+            modelBuilder.Entity("VT_ALLORANT.Model.TournamentModerator", b =>
+                {
+                    b.Property<int>("ModeratorId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("TournamentId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("Id")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("ModeratorId", "TournamentId");
+
+                    b.HasIndex("TournamentId");
+
+                    b.ToTable("TournamentModerator", (string)null);
+                });
+
+            modelBuilder.Entity("VT_ALLORANT.Model.TournamentObserver", b =>
+                {
+                    b.Property<int>("ObserverId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("TournamentId")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("ObserverId", "TournamentId");
+
+                    b.HasIndex("TournamentId");
+
+                    b.ToTable("TournamentObserver", (string)null);
+                });
+
+            modelBuilder.Entity("VT_ALLORANT.Model.TournamentTeam", b =>
+                {
+                    b.Property<int>("TeamId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("TournamentId")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("TeamId", "TournamentId");
+
+                    b.HasIndex("TournamentId");
+
+                    b.ToTable("TournamentTeam", (string)null);
+                });
+
             modelBuilder.Entity("VT_ALLORANT.Model.Valorant.ValorantUser", b =>
                 {
                     b.Property<int>("ValorantUserId")
@@ -156,13 +236,13 @@ namespace VT_ALLORANT.Migrations
                     b.HasOne("VT_ALLORANT.Model.Player", "Player")
                         .WithMany()
                         .HasForeignKey("PlayerId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.HasOne("VT_ALLORANT.Model.Team", "Team")
                         .WithMany()
                         .HasForeignKey("TeamId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.Navigation("Player");
@@ -172,21 +252,36 @@ namespace VT_ALLORANT.Migrations
 
             modelBuilder.Entity("VT_ALLORANT.Model.Game", b =>
                 {
+                    b.HasOne("VT_ALLORANT.Model.Player", "Moderator")
+                        .WithOne()
+                        .HasForeignKey("VT_ALLORANT.Model.Game", "ModeratorId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
                     b.HasOne("VT_ALLORANT.Model.Team", "Team1")
-                        .WithMany()
-                        .HasForeignKey("Team1TeamId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .WithOne()
+                        .HasForeignKey("VT_ALLORANT.Model.Game", "Team1Id")
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.HasOne("VT_ALLORANT.Model.Team", "Team2")
-                        .WithMany()
-                        .HasForeignKey("Team2TeamId")
+                        .WithOne()
+                        .HasForeignKey("VT_ALLORANT.Model.Game", "Team2Id")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("VT_ALLORANT.Model.Tournament", null)
+                        .WithMany("Games")
+                        .HasForeignKey("TournamentId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.HasOne("VT_ALLORANT.Model.Team", "Winner")
-                        .WithMany()
-                        .HasForeignKey("WinnerTeamId");
+                        .WithOne()
+                        .HasForeignKey("VT_ALLORANT.Model.Game", "WinnerId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("Moderator");
 
                     b.Navigation("Team1");
 
@@ -223,6 +318,68 @@ namespace VT_ALLORANT.Migrations
                         .IsRequired();
 
                     b.Navigation("Leader");
+                });
+
+            modelBuilder.Entity("VT_ALLORANT.Model.TournamentModerator", b =>
+                {
+                    b.HasOne("VT_ALLORANT.Model.Player", "Moderator")
+                        .WithMany()
+                        .HasForeignKey("ModeratorId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("VT_ALLORANT.Model.Tournament", "Tournament")
+                        .WithMany()
+                        .HasForeignKey("TournamentId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Moderator");
+
+                    b.Navigation("Tournament");
+                });
+
+            modelBuilder.Entity("VT_ALLORANT.Model.TournamentObserver", b =>
+                {
+                    b.HasOne("VT_ALLORANT.Model.Player", "Observer")
+                        .WithMany()
+                        .HasForeignKey("ObserverId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("VT_ALLORANT.Model.Tournament", "Tournament")
+                        .WithMany()
+                        .HasForeignKey("TournamentId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Observer");
+
+                    b.Navigation("Tournament");
+                });
+
+            modelBuilder.Entity("VT_ALLORANT.Model.TournamentTeam", b =>
+                {
+                    b.HasOne("VT_ALLORANT.Model.Team", "Team")
+                        .WithMany()
+                        .HasForeignKey("TeamId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("VT_ALLORANT.Model.Tournament", "Tournament")
+                        .WithMany()
+                        .HasForeignKey("TournamentId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Team");
+
+                    b.Navigation("Tournament");
+                });
+
+            modelBuilder.Entity("VT_ALLORANT.Model.Tournament", b =>
+                {
+                    b.Navigation("Games");
                 });
 #pragma warning restore 612, 618
         }

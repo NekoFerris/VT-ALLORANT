@@ -55,10 +55,14 @@ namespace VT_ALLORANT.Controller
                 .UsingEntity<TeamPlayer>(
                     j => j.HasOne(tp => tp.Team)
                         .WithMany()
-                        .HasForeignKey(tp => tp.TeamId),
+                        .HasForeignKey(tp => tp.TeamId)
+                        .IsRequired(true)
+                        .OnDelete(DeleteBehavior.Restrict),
                     j => j.HasOne(tp => tp.Player)
                         .WithMany()
-                        .HasForeignKey(tp => tp.PlayerId),
+                        .HasForeignKey(tp => tp.PlayerId)
+                        .IsRequired(true)
+                        .OnDelete(DeleteBehavior.Restrict),
                     j =>
                     {
                         j.HasKey(tp => new { tp.PlayerId, tp.TeamId });
@@ -72,10 +76,14 @@ namespace VT_ALLORANT.Controller
                 .UsingEntity<TeamPlayer>(
                     j => j.HasOne(tp => tp.Player)
                         .WithMany()
-                        .HasForeignKey(tp => tp.PlayerId),
+                        .HasForeignKey(tp => tp.PlayerId)
+                        .IsRequired(true)
+                        .OnDelete(DeleteBehavior.Restrict),
                     j => j.HasOne(tp => tp.Team)
                         .WithMany()
-                        .HasForeignKey(tp => tp.TeamId),
+                        .HasForeignKey(tp => tp.TeamId)
+                        .IsRequired(true)
+                        .OnDelete(DeleteBehavior.Restrict),
                     j =>
                     {
                         j.HasKey(tp => new { tp.PlayerId, tp.TeamId });
@@ -96,6 +104,165 @@ namespace VT_ALLORANT.Controller
                 .HasForeignKey<Team>(e => e.LeaderId)
                 .IsRequired(true)
                 .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<Game>()
+                .HasOne(g => g.Team1)
+                .WithOne()
+                .HasForeignKey<Game>(g => g.Team1Id)
+                .IsRequired(true)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<Game>()
+                .HasOne(g => g.Team2)
+                .WithOne()
+                .HasForeignKey<Game>(g => g.Team2Id)
+                .IsRequired(true)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<Game>()
+                .HasOne(g => g.Winner)
+                .WithOne()
+                .HasForeignKey<Game>(g => g.WinnerId)
+                .IsRequired(false)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<Game>()
+                .HasOne(g => g.Moderator)
+                .WithOne()
+                .HasForeignKey<Game>(g => g.ModeratorId)
+                .IsRequired(true)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<Tournament>()
+                .HasMany(t => t.Games)
+                .WithOne()
+                .HasForeignKey(g => g.TournamentId);
+
+            modelBuilder.Entity<Tournament>()
+                .HasMany(t => t.Observers)
+                .WithMany(p => p.Tournaments)
+                .UsingEntity<TournamentObserver>(
+                    j => j.HasOne(tp => tp.Observer)
+                        .WithMany()
+                        .HasForeignKey(tp => tp.ObserverId)
+                        .IsRequired(true)
+                        .OnDelete(DeleteBehavior.Restrict),
+                    j => j.HasOne(tp => tp.Tournament)
+                        .WithMany()
+                        .HasForeignKey(tp => tp.TournamentId)
+                        .IsRequired(true)
+                        .OnDelete(DeleteBehavior.Restrict),
+                    j =>
+                    {
+                        j.HasKey(tp => new { tp.ObserverId, tp.TournamentId });
+                        j.ToTable("TournamentObserver");
+                    }
+                );
+
+            modelBuilder.Entity<Player>()
+                .HasMany(t => t.Tournaments)
+                .WithMany(p => p.Observers)
+                .UsingEntity<TournamentObserver>(
+                    j => j.HasOne(tp => tp.Tournament)
+                        .WithMany()
+                        .HasForeignKey(tp => tp.TournamentId)
+                        .IsRequired(true)
+                        .OnDelete(DeleteBehavior.Restrict),
+                    j => j.HasOne(tp => tp.Observer)
+                        .WithMany()
+                        .HasForeignKey(tp => tp.ObserverId)
+                        .IsRequired(true)
+                        .OnDelete(DeleteBehavior.Restrict),
+                    j =>
+                    {
+                        j.HasKey(tp => new { tp.ObserverId, tp.TournamentId });
+                        j.ToTable("TournamentObserver");
+                    }
+                );
+            
+            modelBuilder.Entity<Tournament>()
+                .HasMany(t => t.Moderators)
+                .WithMany(p => p.Tournaments)
+                .UsingEntity<TournamentModerator>(
+                    j => j.HasOne(tp => tp.Moderator)
+                        .WithMany()
+                        .HasForeignKey(tp => tp.ModeratorId)
+                        .IsRequired(true)
+                        .OnDelete(DeleteBehavior.Restrict),
+                    j => j.HasOne(tp => tp.Tournament)
+                        .WithMany()
+                        .HasForeignKey(tp => tp.TournamentId)
+                        .IsRequired(true)
+                        .OnDelete(DeleteBehavior.Restrict),
+                    j =>
+                    {
+                        j.HasKey(tp => new { tp.ModeratorId, tp.TournamentId });
+                        j.ToTable("TournamentModerator");
+                    }
+                );
+
+            modelBuilder.Entity<Player>()
+                .HasMany(t => t.Tournaments)
+                .WithMany(p => p.Observers)
+                .UsingEntity<TournamentModerator>(
+                    j => j.HasOne(tp => tp.Tournament)
+                        .WithMany()
+                        .HasForeignKey(tp => tp.TournamentId)
+                        .IsRequired(true)
+                        .OnDelete(DeleteBehavior.Restrict),
+                    j => j.HasOne(tp => tp.Moderator)
+                        .WithMany()
+                        .HasForeignKey(tp => tp.ModeratorId)
+                        .IsRequired(true)
+                        .OnDelete(DeleteBehavior.Restrict),
+                    j =>
+                    {
+                        j.HasKey(tp => new { tp.ModeratorId, tp.TournamentId });
+                        j.ToTable("TournamentModerator");
+                    }
+                );
+
+            modelBuilder.Entity<Tournament>()
+                .HasMany(t => t.Teams)
+                .WithMany(p => p.Tournaments)
+                .UsingEntity<TournamentTeam>(
+                    j => j.HasOne(tp => tp.Team)
+                        .WithMany()
+                        .HasForeignKey(tp => tp.TeamId)
+                        .IsRequired(true)
+                        .OnDelete(DeleteBehavior.Restrict),
+                    j => j.HasOne(tp => tp.Tournament)
+                        .WithMany()
+                        .HasForeignKey(tp => tp.TournamentId)
+                        .IsRequired(true)
+                        .OnDelete(DeleteBehavior.Restrict),
+                    j =>
+                    {
+                        j.HasKey(tp => new { tp.TeamId, tp.TournamentId });
+                        j.ToTable("TournamentTeam");
+                    }
+                );
+
+            modelBuilder.Entity<Team>()
+                .HasMany(t => t.Tournaments)
+                .WithMany(p => p.Teams)
+                .UsingEntity<TournamentTeam>(
+                    j => j.HasOne(tp => tp.Tournament)
+                        .WithMany()
+                        .HasForeignKey(tp => tp.TournamentId)
+                        .IsRequired(true)
+                        .OnDelete(DeleteBehavior.Restrict),
+                    j => j.HasOne(tp => tp.Team)
+                        .WithMany()
+                        .HasForeignKey(tp => tp.TeamId)
+                        .IsRequired(true)
+                        .OnDelete(DeleteBehavior.Restrict),
+                    j =>
+                    {
+                        j.HasKey(tp => new { tp.TeamId, tp.TournamentId });
+                        j.ToTable("TournamentTeam");
+                    }
+                );
         }
     }
 }

@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using VT_ALLORANT.Controller;
 
@@ -10,9 +11,11 @@ using VT_ALLORANT.Controller;
 namespace VT_ALLORANT.Migrations
 {
     [DbContext(typeof(DBAccess))]
-    partial class DBAccessModelSnapshot : ModelSnapshot
+    [Migration("20240703100113_Update1")]
+    partial class Update1
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "8.0.4");
@@ -64,9 +67,6 @@ namespace VT_ALLORANT.Migrations
                         .IsRequired()
                         .HasColumnType("INTEGER");
 
-                    b.Property<int>("Stage")
-                        .HasColumnType("INTEGER");
-
                     b.Property<int?>("Team1Id")
                         .IsRequired()
                         .HasColumnType("INTEGER");
@@ -112,9 +112,6 @@ namespace VT_ALLORANT.Migrations
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasColumnType("TEXT");
-
-                    b.Property<int>("RankedScore")
-                        .HasColumnType("INTEGER");
 
                     b.Property<int>("ValorantUserId")
                         .HasColumnType("INTEGER");
@@ -167,7 +164,7 @@ namespace VT_ALLORANT.Migrations
 
                     b.HasKey("TournamentId");
 
-                    b.ToTable("Tournament");
+                    b.ToTable("Tournaments");
                 });
 
             modelBuilder.Entity("VT_ALLORANT.Model.TournamentModerator", b =>
