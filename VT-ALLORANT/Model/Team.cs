@@ -23,7 +23,7 @@ public class Team
     public static void CreateTeam(string name, Player leader)
     {
         using DBAccess dBAccess = new();
-        Team teamToAdd = new Team()
+        Team teamToAdd = new()
         {
             Name = name,
             Leader = leader
@@ -47,7 +47,7 @@ public class Team
     public void RemovePlayer(Player player)
     {
         using DBAccess dBAccess = new();
-        dBAccess.TeamPlayers.Remove(dBAccess.TeamPlayers.Find(this.TeamId, player.PlayerId) ?? throw new Exception("Spieler nicht im Team"));
+        dBAccess.TeamPlayers.Remove(dBAccess.TeamPlayers.Find(this.TeamId, player.PlayerId) ?? throw new Exception($"Spieler {player.Name} nicht im Team {this.Name} gefunden"));
         dBAccess.SaveChanges();
     }
 
@@ -73,6 +73,7 @@ public class Team
     {
         using DBAccess dBAccess = new();
         dBAccess.Remove(this);
+        dBAccess.SaveChanges();
     }
 
     public static List<Team> GetAll()

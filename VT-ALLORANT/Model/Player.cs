@@ -34,30 +34,20 @@ public enum PlayerRankedScore
 }
 
 [Table("Players")]
-public class Player
+public class Player(string name, DiscordUser discordUser, ValorantUser valorantUser)
 {
     // Properties
     [Key]
     [ForeignKey("PlayerId")]
     public int PlayerId { get; set; }
-    public string Name { get; set; } = "unset";
+    public string Name { get; set; } = name;
     public PlayerRankedScore RankedScore { get; set; } = PlayerRankedScore.Iron1;
     public int DiscordUserId { get; set; }
-    public DiscordUser DiscordUser { get; set; } = null!;
+    public DiscordUser DiscordUser { get; set; } = discordUser;
     public int ValorantUserId { get; set; }
-    public ValorantUser ValorantUser { get; set; } = null!;
+    public ValorantUser ValorantUser { get; set; } = valorantUser;
     public ICollection<Team>? Teams { get; set; }
     public ICollection<Tournament>? Tournaments { get; set; }
-
-    public static Player CreatePlayer(string name, DiscordUser discordUser, ValorantUser valorantUser)
-    {
-        return new Player()
-        {
-            Name = name,
-            DiscordUser = discordUser,
-            ValorantUser = valorantUser
-        };
-    }
 
     public void InsertPlayer()
     {

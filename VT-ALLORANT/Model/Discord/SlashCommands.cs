@@ -22,7 +22,7 @@ namespace VT_ALLORANT.Model.Discord
             }
             catch
             {
-                return "Riot Account nicht gefunden, wenn du glaubst das es ein Fehler ist, kontaktiere bitte einen Admin";
+                return "Riot Account nicht gefunden. Wenn du glaubst das es ein Fehler ist, kontaktiere bitte einen Admin";
             }
             DiscordUser discordUser = new()
             {
@@ -30,14 +30,14 @@ namespace VT_ALLORANT.Model.Discord
                 Username = command.User.Username
             };
             string name = options[2]?.Value?.ToString()?.Trim() ?? throw new Exception("Kein Name angegeben");
-            Player player = Player.CreatePlayer(name.Trim(), discordUser, valorantUser);
+            Player player = new(name.Trim(), discordUser, valorantUser);
             player.InsertPlayer();
             return $"Regestrierung für VTuber {name.Trim()} mit dem Valorant Account {valorantUser.NAME}#{valorantUser.TAG} erfolgreich abgeschlossen";
         }
 
         public static string Unregister(SocketSlashCommand command)
         {
-            List<SocketSlashCommandDataOption> options = command.Data.Options.ToList();
+            List<SocketSlashCommandDataOption> options = [.. command.Data.Options];
             Player player;
             try
             {
@@ -48,7 +48,7 @@ namespace VT_ALLORANT.Model.Discord
             {
                 return e.Message;
             }
-            return $"Regestrierung für VTuber {options[2].Value.ToString()?.Trim()} erfolgreich gelöscht";
+            return $"Regestrierung für VTuber {options[0].Value.ToString()?.Trim()} erfolgreich gelöscht";
         }
 
         public static string CreateTeam(SocketSlashCommand command)
@@ -121,10 +121,6 @@ namespace VT_ALLORANT.Model.Discord
                     throw new Exception("Du bist nicht der Anführer dieses Teams");
                 }
                 playerToRemove = Player.GetPlayerByDiscordUserName(command.Data.Options.ToList()[0].Value.ToString()?.Trim() ?? throw new Exception("Kein Spieler angegeben"));
-                if (team.Players.Contains(playerToRemove))
-                {
-                    throw new Exception($"{playerToRemove.Name} nicht teil des Teams");
-                }
                 team.RemovePlayer(playerToRemove);
             }
             catch (Exception e)
@@ -150,10 +146,6 @@ namespace VT_ALLORANT.Model.Discord
                 if (newLeader.PlayerId == team.Leader.PlayerId)
                 {
                     throw new Exception("Du bist bereits der Anführer dieses Teams");
-                }
-                if (team.Players.Contains(newLeader))
-                {
-                    throw new Exception("Spieler nicht teil des Teams");
                 }
                 team.SetLeader(newLeader);
             }

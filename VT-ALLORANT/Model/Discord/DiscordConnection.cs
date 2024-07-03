@@ -21,7 +21,8 @@ public class DiscordConnection
         {
             await CreateCommands();
         };
-        await _client.LoginAsync(TokenType.Bot, "MTIzODQ1OTkwMDc2MjI2MzYwMw.GyMKKB.LvrgEdIf_QUS53Zo1hhS6b9sjnLb9Y3dd_ZoYg");
+        Config configFile = new();
+        await _client.LoginAsync(TokenType.Bot, configFile.DiscordApiKey);
         await _client.StartAsync();
     }
 
@@ -49,7 +50,7 @@ public class DiscordConnection
                 await Task.WhenAll(deleteGuildCommandsTasks);
                 await Task.WhenAll(deleteGlobalCommandsTasks);
 
-                List<Task> tasks = new List<Task>();
+                List<Task> tasks = [];
 
                 SlashCommandBuilder guildCommand = new SlashCommandBuilder()
                     .WithName("register")

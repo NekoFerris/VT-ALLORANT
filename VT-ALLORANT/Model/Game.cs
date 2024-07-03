@@ -4,32 +4,21 @@ using System.ComponentModel.DataAnnotations;
 using Microsoft.EntityFrameworkCore;
 
 [Table("Games")]
-public class Game
+public class Game(Team team1, Team team2, Player moderator, List<Player> observers, int tournamentId, int stage = 0)
 {
     public int GameId { get; set; }
-    public string MatchId { get; set; }
-    public Team Team1{ get; set; } 
+    public string MatchId { get; set; } = "VALORANT-1234";
+    public Team Team1 { get; set; } = team1;
     public int? Team1Id { get; set; }
-    public Team Team2{ get; set; } 
+    public Team Team2 { get; set; } = team2;
     public int? Team2Id { get; set; }
     public Team? Winner { get; set; } = null;
     public int? WinnerId { get; set; }
-    public Player Moderator;
+    public Player Moderator = moderator;
     public int? ModeratorId { get; set; }
-    public List<Player> Observers = new List<Player>();
-    public int TournamentId { get; set; }
-    public int Stage { get; set; } = 0;
-
-    public Game(Team team1, Team team2, Player moderator, List<Player> observers, int tournamentId, int stage = 0)
-    {
-        MatchId = "VALORANT-1234";
-        Team1 = team1;
-        Team2 = team2;
-        Moderator = moderator;
-        Observers = observers;
-        TournamentId = tournamentId;
-        Stage = stage;
-    }
+    public List<Player> Observers = observers;
+    public int TournamentId { get; set; } = tournamentId;
+    public int Stage { get; set; } = stage;
 
     public void EndGame(Team winner)
     {
