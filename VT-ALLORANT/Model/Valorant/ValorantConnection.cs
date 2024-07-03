@@ -11,7 +11,8 @@ namespace VT_ALLORANT.Model.Valorant
         // Constructor
         static ValorantConnection()
         {
-            Api = RiotApi.NewInstance("RGAPI-81cdcc1c-ea9d-498a-bcb8-b67a94690aad");
+            Config config = new();
+            Api = RiotApi.NewInstance(config.ValorantApiKey);
         }
 
         public static string GetUserUUIDByNameAndTag(string name, string tag)

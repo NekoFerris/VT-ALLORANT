@@ -1,77 +1,101 @@
 using System.ComponentModel.DataAnnotations.Schema;
 using System.ComponentModel.DataAnnotations;
 using VT_ALLORANT.Controller;
+using System.Reactive.Linq;
+using Microsoft.EntityFrameworkCore;
 
 namespace VT_ALLORANT.Model;
 
-[Table("Team")]
+[Table("Teams")]
 public class Team
 {
 
-    // Properties
     [Key]
-    public int Id { get; set; }  // Unique ID of the team
-    public string Name { get; set; } = "unset"; // Default value "unset
-    public Player Leader { get; set; }  // Leader of the team
-    public List<Player> Players { get; set; } = []; // Default value new List<Player>()
+    [ForeignKey("TeamId")]
+    public int TeamId { get; set; }
+    public string Name { get; set; } = "unset";
+    public byte MaxPlayers { get; set; } = 5;
+    public int? LeaderId { get; set; }
+    public Player Leader { get; set; } = null!;
+    public ICollection<Player> Players { get; set; } = [];
+    public ICollection<Tournament> Tournaments {get ;set;} = [];
 
-    // Constructor
-    public Team()
+    public static void CreateTeam(string name, Player leader)
     {
-
-    }
-
-    public static Team CreateTeam(string name, Player leader)
-    {
-        return new Team()
+        using DBAccess dBAccess = new();
+        Team teamToAdd = new()
         {
             Name = name,
-            Leader = leader,
-            Players = new List<Player>() { leader }
+            Leader = leader
         };
+        dBAccess.Teams.Attach(teamToAdd);
+        dBAccess.SaveChanges();
+        teamToAdd.AddPlayer(leader);
     }
 
-    // Methods
-    // Add a player to the team
     public void AddPlayer(Player player)
     {
-        Players.Add(player);
-        SaveChanges();
+        using DBAccess dBAccess = new();
+        dBAccess.TeamPlayers.Attach(new TeamPlayer()
+        {
+            Team = this,
+            Player = player
+        });
+        dBAccess.SaveChanges();
     }
 
-    // Remove a player from the team
     public void RemovePlayer(Player player)
     {
-        Players.Remove(player);
-        SaveChanges();
-    }
-    // Methods
-    // Add your custom methods here
-    public void InsertTeam()
-    {
-        DBTeam dBAccess = new();
-        dBAccess.Add(this);
+        using DBAccess dBAccess = new();
+        dBAccess.TeamPlayers.Remove(dBAccess.TeamPlayers.Find(this.TeamId, player.PlayerId) ?? throw new Exception($"Spieler {player.Name} nicht im Team {this.Name} gefunden"));
+        dBAccess.SaveChanges();
     }
 
     public static Team LoadTeam(int id)
     {
-        DBTeam dBAccess = new();
-        return dBAccess.GetById(id);
+        using DBAccess dBAccess = new();
+        Team t = dBAccess.Teams.Find(id) ?? throw new Exception("Team nicht gefunden");
+        t.Leader = Player.LoadPlayer(t.LeaderId);
+        t.Players = Player.GetPlayersForTeam(t);
+        return t;
     }
-    public void SaveChanges()
+
+    public static Team LoadTeam(Player leader)
     {
-        DBTeam dBAccess = new();
-        dBAccess.Update(this);
+        using DBAccess dBAccess = new();
+        Team t = dBAccess.Teams.FirstOrDefault(t => t.LeaderId == leader.PlayerId) ?? throw new Exception($"Team für Spieler {leader.Name} nicht gefunden");
+        t.Players = Player.GetPlayersForTeam(t);
+        t.Leader = t.Players.FirstOrDefault(p => p.PlayerId == t.LeaderId) ?? throw new Exception($"Anführer für Team {t.Name} nicht gefunden");
+        return t;
     }
+
     public void Delete()
     {
-       DBTeam dBAccess = new();
-        dBAccess.Delete(this);
+        using DBAccess dBAccess = new();
+        dBAccess.Remove(this);
+        dBAccess.SaveChanges();
     }
 
     public static List<Team> GetAll()
     {
-        DBTeam dBAccess = new();
-        return dBAccess.GetAll();
+        using DBAccess dBAccess = new();
+        return [.. dBAccess.Teams];
+    }
+
+    public void SetLeader(Player player)
+    {
+        using DBAccess dBAccess = new();
+        Player existingPlayer = Players.FirstOrDefault(p => p.PlayerId == player.PlayerId) ?? throw new Exception("Spieler nicht im Team");
+        if (existingPlayer != null)
+        {
+            Leader = existingPlayer;
+            LeaderId = existingPlayer.PlayerId;
+        }
+        else
+        {
+            throw new Exception("Player not found in the team's player list");
+        }
+        dBAccess.Teams.Find(this.TeamId)!.LeaderId = LeaderId;
+        dBAccess.SaveChanges();
     }
 }
