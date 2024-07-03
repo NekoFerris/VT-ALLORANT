@@ -20,13 +20,9 @@ public class Game
     public int TournamentId { get; set; }
     public int Stage { get; set; } = 0;
 
-    public Game()
-    {
-
-    }
-
     public Game(Team team1, Team team2, Player moderator, List<Player> observers, int tournamentId, int stage = 0)
     {
+        MatchId = "VALORANT-1234";
         Team1 = team1;
         Team2 = team2;
         Moderator = moderator;

@@ -43,16 +43,11 @@ public class Player
     public string Name { get; set; } = "unset";
     public PlayerRankedScore RankedScore { get; set; } = PlayerRankedScore.Iron1;
     public int DiscordUserId { get; set; }
-    public DiscordUser DiscordUser { get; set; }
+    public DiscordUser DiscordUser { get; set; } = null!;
     public int ValorantUserId { get; set; }
-    public ValorantUser ValorantUser { get; set; }
+    public ValorantUser ValorantUser { get; set; } = null!;
     public ICollection<Team>? Teams { get; set; }
     public ICollection<Tournament>? Tournaments { get; set; }
-    // Constructor
-    public Player()
-    {
-
-    }
 
     public static Player CreatePlayer(string name, DiscordUser discordUser, ValorantUser valorantUser)
     {
@@ -116,6 +111,6 @@ public class Player
         DBAccess dBAccess = new();
         return [.. dBAccess.Players.Include(d => d.DiscordUser)
                                    .Include(v => v.ValorantUser)
-                                   .Where(player => player.Teams.Contains(t))];
+                                   .Where(player => player.Teams!.Contains(t))];
     }
 }

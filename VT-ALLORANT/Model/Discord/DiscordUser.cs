@@ -11,13 +11,8 @@ public class DiscordUser
     [Key]
     [ForeignKey("DiscordUserId")]
     public int DiscordUserId { get; set; }
-    public string Username { get; set; }
+    public string Username { get; set; } = "unset";
     public ulong DiscordId { get; set; }
-    // Constructor
-    public DiscordUser()
-    {
-
-    }
 
     // Methods
     public void SendMessage(string message)
@@ -47,18 +42,18 @@ public class DiscordUser
     public static DiscordUser LoadUser(int Id)
     {
         DBAccess dBAccess = new();
-        return dBAccess.DiscordUsers.Find(Id);
+        return dBAccess.DiscordUsers.Find(Id) ?? throw new Exception("User not found");
     }
 
     public static DiscordUser LoadUser(ulong Id)
     {
         DBAccess dBAccess = new();
-        return dBAccess.DiscordUsers.Find(Id);
+        return dBAccess.DiscordUsers.Find(Id) ?? throw new Exception("User not found");
     }
 
     public static List<DiscordUser> GetAll()
     {
         DBAccess dBAccess = new();
-        return dBAccess.DiscordUsers.ToList();
+        return [.. dBAccess.DiscordUsers];
     }
 }

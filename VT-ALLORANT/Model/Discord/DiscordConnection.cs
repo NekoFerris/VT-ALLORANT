@@ -38,7 +38,7 @@ public class DiscordConnection
         {
             try
             {
-                SocketGuild guild = _client.GetGuild(1238457984288296982);
+                SocketGuild guild = _client!.GetGuild(1238457984288296982);
 
                 IReadOnlyCollection<SocketApplicationCommand> guildCommands = await guild.GetApplicationCommandsAsync();
                 IReadOnlyCollection<SocketApplicationCommand> globalCommands = await _client.GetGlobalApplicationCommandsAsync();

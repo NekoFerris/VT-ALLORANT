@@ -11,15 +11,9 @@ public class ValorantUser
     [Key]
     [ForeignKey("ValorantUserId")]
     public int ValorantUserId { get; set; }
-    public string PUUID { get; set; }
-    public string NAME { get; set; }
-    public string TAG { get; set; }
-
-    // Constructor
-    public ValorantUser()
-    {
-
-    }
+    public string PUUID { get; set; } = "unset";
+    public string NAME { get; set; } = "unset";
+    public string TAG { get; set; } = "unset";
 
     // Methods
     public void SendMessage(string message)
@@ -52,7 +46,7 @@ public class ValorantUser
     public static ValorantUser LoadUser(int Id)
     {
         DBAccess dBAccess = new();
-        return dBAccess.ValorantUsers.Find(Id);
+        return dBAccess.ValorantUsers.Find(Id) ?? throw new Exception("User not found");
     }
 
     public static List<ValorantUser> GetAll()

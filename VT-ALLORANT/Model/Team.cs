@@ -16,14 +16,9 @@ public class Team
     public string Name { get; set; } = "unset";
     public byte MaxPlayers { get; set; } = 5;
     public int? LeaderId { get; set; }
-    public Player Leader { get; set; }
+    public Player Leader { get; set; } = null!;
     public ICollection<Player> Players { get; set; } = [];
     public ICollection<Tournament> Tournaments {get ;set;} = [];
-
-    public Team()
-    {
-
-    }
 
     public static void CreateTeam(string name, Player leader)
     {
@@ -52,7 +47,7 @@ public class Team
     public void RemovePlayer(Player player)
     {
         using DBAccess dBAccess = new();
-        dBAccess.TeamPlayers.Remove(dBAccess.TeamPlayers.Find(this.TeamId, player.PlayerId));
+        dBAccess.TeamPlayers.Remove(dBAccess.TeamPlayers.Find(this.TeamId, player.PlayerId) ?? throw new Exception("Spieler nicht im Team"));
         dBAccess.SaveChanges();
     }
 
@@ -89,7 +84,7 @@ public class Team
     public void SetLeader(Player player)
     {
         using DBAccess dBAccess = new();
-        Player existingPlayer = Players.FirstOrDefault(p => p.PlayerId == player.PlayerId);
+        Player existingPlayer = Players.FirstOrDefault(p => p.PlayerId == player.PlayerId) ?? throw new Exception("Spieler nicht im Team");
         if (existingPlayer != null)
         {
             Leader = existingPlayer;
@@ -99,7 +94,7 @@ public class Team
         {
             throw new Exception("Player not found in the team's player list");
         }
-        dBAccess.Teams.Find(this.TeamId).LeaderId = LeaderId;
+        dBAccess.Teams.Find(this.TeamId)!.LeaderId = LeaderId;
         dBAccess.SaveChanges();
     }
 }
