@@ -9,10 +9,12 @@ namespace VT_ALLORANT.Model.Discord
         {
             List<SocketSlashCommandDataOption> options = [.. command.Data.Options];
             ValorantUser valorantUser;
+            string valoname = "";
+            string tag = "";
             try
             {
-                string valoname = options[0]?.Value?.ToString()?.Trim() ?? throw new Exception("Kein Name angegeben");
-                string tag = options[1]?.Value?.ToString()?.Trim() ?? throw new Exception("Kein Tag angegeben");
+                valoname = options[0]?.Value?.ToString()?.Trim() ?? throw new Exception("Kein Name angegeben");
+                tag = options[1]?.Value?.ToString()?.Trim() ?? throw new Exception("Kein Tag angegeben");
                 valorantUser = new()
                 {
                     PUUID = ValorantConnection.GetUserUUIDByNameAndTag(valoname, tag),
@@ -22,7 +24,7 @@ namespace VT_ALLORANT.Model.Discord
             }
             catch
             {
-                return "Riot Account nicht gefunden. Wenn du glaubst das es ein Fehler ist, kontaktiere bitte einen Admin";
+                return $"Riot Account {valoname}#{tag} nicht gefunden. Wenn du glaubst das es ein Fehler ist, kontaktiere bitte einen Admin";
             }
             DiscordUser discordUser = new()
             {
