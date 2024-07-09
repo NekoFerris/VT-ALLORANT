@@ -1,4 +1,5 @@
 using System.Net.WebSockets;
+using System.Threading.Tasks;
 using Discord;
 using Discord.WebSocket;
 
@@ -39,7 +40,8 @@ public class DiscordConnection
         {
             try
             {
-                SocketGuild guild = _client!.GetGuild(1238457984288296982);
+                Config configFile = new();
+                SocketGuild guild = _client!.GetGuild(configFile.GuildId);
 
                 IReadOnlyCollection<SocketApplicationCommand> guildCommands = await guild.GetApplicationCommandsAsync();
                 IReadOnlyCollection<SocketApplicationCommand> globalCommands = await _client.GetGlobalApplicationCommandsAsync();
@@ -94,10 +96,18 @@ public class DiscordConnection
                     .AddOption("name", ApplicationCommandOptionType.User, "Name des Spielers", isRequired: true);
                 tasks.Add(guild.CreateApplicationCommandAsync(guildCommand.Build()));
 
-                foreach (Task task in tasks)
-                {
-                    await task;
-                }
+                guildCommand = new SlashCommandBuilder()
+                    .WithName("start-matchmaking")
+                    .WithDescription("Matchmaking starten");
+                tasks.Add(guild.CreateApplicationCommandAsync(guildCommand.Build()));
+
+                guildCommand = new SlashCommandBuilder()
+                    .WithName("send-friend-request")
+                    .WithDescription("Freundschaftsanfrage senden")
+                    .AddOption("name", ApplicationCommandOptionType.User, "Name des Spielers", isRequired: true);
+                tasks.Add(guild.CreateApplicationCommandAsync(guildCommand.Build()));
+
+                Parallel.ForEach(tasks, async task => await task);
 
 
             }
@@ -142,6 +152,12 @@ public class DiscordConnection
                     break;
                 case "remove-player":
                     await command.ModifyOriginalResponseAsync(properties => properties.Content = SlashCommands.RemovePlayer(command));
+                    break;
+                case "start-matchmaking":
+                    await command.ModifyOriginalResponseAsync(properties => properties.Content = SlashCommands.StartMatchmaking(command));
+                    break;
+                case "send-friend-request":
+                    await command.ModifyOriginalResponseAsync(properties => properties.Content = SlashCommands.SendFriendRequest(command));
                     break;
                 default:
                     await command.ModifyOriginalResponseAsync(properties => properties.Content = "Command not found");

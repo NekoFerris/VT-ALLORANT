@@ -20,7 +20,7 @@ public class Team
     public ICollection<Player> Players { get; set; } = [];
     public ICollection<Tournament> Tournaments {get ;set;} = [];
 
-    public static void CreateTeam(string name, Player leader)
+    public static void Create(string name, Player leader)
     {
         using DBAccess dBAccess = new();
         Team teamToAdd = new()
@@ -55,7 +55,7 @@ public class Team
     {
         using DBAccess dBAccess = new();
         Team t = dBAccess.Teams.Find(id) ?? throw new Exception("Team nicht gefunden");
-        t.Leader = Player.LoadPlayer(t.LeaderId);
+        t.Leader = Player.Load(t.LeaderId);
         t.Players = Player.GetPlayersForTeam(t);
         return t;
     }

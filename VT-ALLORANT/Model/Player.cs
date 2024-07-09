@@ -9,6 +9,7 @@ namespace VT_ALLORANT.Model;
 
 public enum PlayerRankedScore
 {
+    None,
     Iron1,
     Iron2,
     Iron3,
@@ -34,36 +35,48 @@ public enum PlayerRankedScore
 }
 
 [Table("Players")]
-public class Player(string name, DiscordUser discordUser, ValorantUser valorantUser)
+public class Player
 {
     // Properties
     [Key]
     [ForeignKey("PlayerId")]
     public int PlayerId { get; set; }
-    public string Name { get; set; } = name;
-    public PlayerRankedScore RankedScore { get; set; } = PlayerRankedScore.Iron1;
+    public string Name { get; set; }
+    public PlayerRankedScore RankedScore { get; set; } = PlayerRankedScore.None;
     public int DiscordUserId { get; set; }
-    public DiscordUser DiscordUser { get; set; } = discordUser;
+    public DiscordUser DiscordUser { get; set; }
     public int ValorantUserId { get; set; }
-    public ValorantUser ValorantUser { get; set; } = valorantUser;
+    public ValorantUser ValorantUser { get; set; }
     public ICollection<Team>? Teams { get; set; }
     public ICollection<Tournament>? Tournaments { get; set; }
+    public ICollection<Game>? ObserverInGames { get; set; }
 
-    public void InsertPlayer()
+    public Player()
+    {
+    }
+
+    public Player(string name, DiscordUser discordUser, ValorantUser valorantUser)
+    {
+        Name = name;
+        DiscordUser = discordUser;
+        ValorantUser = valorantUser;
+    }
+
+    public void Insert()
     {
         DBAccess dBAccess = new();
         dBAccess.Add(this);
         dBAccess.SaveChanges();
     }
 
-    public void DeletePlayer()
+    public void Delete()
     {
         DBAccess dBAccess = new();
         dBAccess.Remove(this);
         dBAccess.SaveChanges();
     }
 
-    public static Player LoadPlayer(int? id)
+    public static Player Load(int? id)
     {
         DBAccess dBAccess = new();
         Player player = dBAccess.Players.Include(d => d.DiscordUser)
@@ -72,7 +85,7 @@ public class Player(string name, DiscordUser discordUser, ValorantUser valorantU
         return player;
     }
 
-    internal static Player LoadPlayer(ulong id)
+    internal static Player Load(ulong id)
     {
         DBAccess dBAccess = new();
         Player player = dBAccess.Players.Include(d => d.DiscordUser)

@@ -15,6 +15,11 @@ namespace VT_ALLORANT.Controller
         public DbSet<DiscordUser> DiscordUsers { get; set; }
         public DbSet<ValorantUser> ValorantUsers { get; set; }
         public DbSet<TeamPlayer> TeamPlayers { get; set; }
+        public DbSet<TournamentObserver> TournamentObservers { get; set; }
+        public DbSet<TournamentModerator> TournamentModerators { get; set; }
+        public DbSet<TournamentTeam> TournamentTeams { get; set; }
+        public DbSet<GameObserver> GameObservers { get; set; }
+        public DbSet<Tournament> Tournaments { get; set; }
 
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
@@ -263,6 +268,48 @@ namespace VT_ALLORANT.Controller
                         j.ToTable("TournamentTeam");
                     }
                 );
+
+            modelBuilder.Entity<Game>()
+            .HasMany(t => t.Observers)
+            .WithMany(p => p.ObserverInGames)
+            .UsingEntity<GameObserver>(
+                j => j.HasOne(tp => tp.Observer)
+                    .WithMany()
+                    .HasForeignKey(tp => tp.ObserverId)
+                    .IsRequired(true)
+                    .OnDelete(DeleteBehavior.Restrict),
+                j => j.HasOne(tp => tp.Game)
+                    .WithMany()
+                    .HasForeignKey(tp => tp.GameId)
+                    .IsRequired(true)
+                    .OnDelete(DeleteBehavior.Restrict),
+                j =>
+                {
+                    j.HasKey(tp => new { tp.ObserverId, tp.GameId });
+                    j.ToTable("TournamentTeam");
+                }
+            );
+
+            modelBuilder.Entity<Player>()
+            .HasMany(t => t.ObserverInGames)
+            .WithMany(p => p.Observers)
+            .UsingEntity<GameObserver>(
+                j => j.HasOne(tp => tp.Game)
+                    .WithMany()
+                    .HasForeignKey(tp => tp.GameId)
+                    .IsRequired(true)
+                    .OnDelete(DeleteBehavior.Restrict),
+                j => j.HasOne(tp => tp.Observer)
+                    .WithMany()
+                    .HasForeignKey(tp => tp.ObserverId)
+                    .IsRequired(true)
+                    .OnDelete(DeleteBehavior.Restrict),
+                j =>
+                {
+                    j.HasKey(tp => new { tp.ObserverId, tp.GameId });
+                    j.ToTable("GameObserver");
+                }
+            );
         }
     }
 }

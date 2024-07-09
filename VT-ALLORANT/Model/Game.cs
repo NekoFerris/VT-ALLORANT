@@ -2,23 +2,43 @@ namespace VT_ALLORANT.Model;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.ComponentModel.DataAnnotations;
 using Microsoft.EntityFrameworkCore;
+using VT_ALLORANT.Controller;
 
 [Table("Games")]
-public class Game(Team team1, Team team2, Player moderator, List<Player> observers, int tournamentId, int stage = 0)
+public class Game
 {
+    [Key]
+    [ForeignKey("GameId")]
     public int GameId { get; set; }
     public string MatchId { get; set; } = "VALORANT-1234";
-    public Team Team1 { get; set; } = team1;
+    public Team Team1 { get; set; }
     public int? Team1Id { get; set; }
-    public Team Team2 { get; set; } = team2;
+    public Team Team2 { get; set; } 
     public int? Team2Id { get; set; }
     public Team? Winner { get; set; } = null;
     public int? WinnerId { get; set; }
-    public Player Moderator = moderator;
+    public Player Moderator { get; set; }
     public int? ModeratorId { get; set; }
-    public List<Player> Observers = observers;
-    public int TournamentId { get; set; } = tournamentId;
-    public int Stage { get; set; } = stage;
+    public List<Player> Observers { get; set; } = [];
+    public int TournamentId { get; set; }
+    public int Stage { get; set; }
+
+    public Game()
+    {
+    }
+
+    public Game(Team team1, Team team2, Player moderator, List<Player> observers, int tournamentId, int stage = 0)
+    {
+        Team1 = team1;
+        Team1Id = team1.TeamId;
+        Team2 = team2;
+        Team2Id = team2.TeamId;
+        Moderator = moderator;
+        ModeratorId = moderator.PlayerId;
+        Observers = observers;
+        TournamentId = tournamentId;
+        Stage = stage;
+    }
 
     public void EndGame(Team winner)
     {
@@ -28,18 +48,27 @@ public class Game(Team team1, Team team2, Player moderator, List<Player> observe
 
     public void AddObserver(Player observer)
     {
-        Observers.Add(observer);
+        DBAccess dBAccess = new();
+        dBAccess.GameObservers.Attach(new GameObserver()
+        {
+            Game = this,
+            Observer = observer
+        });
+        dBAccess.SaveChanges();
     }
 
     public void RemoveObserver(Player observer)
     {
-        Observers.Remove(observer);
+        DBAccess dBAccess = new();
+        dBAccess.GameObservers.Remove(dBAccess.GameObservers.Find(this.GameId, observer.PlayerId) ?? throw new Exception($"Spieler {observer.Name} nicht im Match {this.MatchId} gefunden"));
+        dBAccess.SaveChanges();
     }
 
     public void SetModerator(Player moderator)
     {
-        Moderator = moderator;
-        ModeratorId = moderator.PlayerId;
+        using DBAccess dBAccess = new();
+        dBAccess.Games.Find(this.GameId)!.Moderator = moderator;
+        dBAccess.SaveChanges();
     }
 
     public void ChangeTeam(int teamNumber, Team team)
@@ -54,12 +83,6 @@ public class Game(Team team1, Team team2, Player moderator, List<Player> observe
             Team2 = team;
             Team2Id = team.TeamId;
         }
-    }
-
-    public void ChangeTeam2(Team team)
-    {
-        Team2 = team;
-        Team2Id = team.TeamId;
     }
 
     public void OpenGame()

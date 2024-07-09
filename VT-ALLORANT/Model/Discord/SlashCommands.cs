@@ -1,4 +1,6 @@
+using Discord;
 using Discord.WebSocket;
+using VT_ALLORANT.Controller;
 using VT_ALLORANT.Model.Valorant;
 
 namespace VT_ALLORANT.Model.Discord
@@ -24,7 +26,7 @@ namespace VT_ALLORANT.Model.Discord
             }
             catch
             {
-                return $"Riot Account {valoname}#{tag} nicht gefunden. Wenn du glaubst das es ein Fehler ist, kontaktiere bitte einen Admin";
+                return $"Riot Account {valoname}#{tag} nicht gefunden. Wenn du glaubst, dass es ein Fehler ist, kontaktiere bitte einen Admin";
             }
             DiscordUser discordUser = new()
             {
@@ -33,7 +35,7 @@ namespace VT_ALLORANT.Model.Discord
             };
             string name = options[2]?.Value?.ToString()?.Trim() ?? throw new Exception("Kein Name angegeben");
             Player player = new(name.Trim(), discordUser, valorantUser);
-            player.InsertPlayer();
+            player.Insert();
             return $"Regestrierung für VTuber {name.Trim()} mit dem Valorant Account {valorantUser.NAME}#{valorantUser.TAG} erfolgreich abgeschlossen";
         }
 
@@ -43,8 +45,8 @@ namespace VT_ALLORANT.Model.Discord
             Player player;
             try
             {
-                player = Player.LoadPlayer(command.User.Id);
-                player.DeletePlayer();
+                player = Player.Load(command.User.Id);
+                player.Delete();
             }
             catch (Exception e)
             {
@@ -56,7 +58,7 @@ namespace VT_ALLORANT.Model.Discord
         public static string CreateTeam(SocketSlashCommand command)
         {
             string teamName = command.Data.Options.ToList()[0].Value.ToString()?.Trim() ?? throw new Exception("Kein Teamname angegeben");
-            Team.CreateTeam(teamName, Player.LoadPlayer(command.User.Id));
+            Team.Create(teamName, Player.Load(command.User.Id));
             return $"Team {teamName} erstellt";
         }
 
@@ -65,8 +67,8 @@ namespace VT_ALLORANT.Model.Discord
             Team team;
             try
             {
-                Player leader = Player.LoadPlayer(command.User.Id);
-                team = Team.LoadTeam(Player.LoadPlayer(command.User.Id));
+                Player leader = Player.Load(command.User.Id);
+                team = Team.LoadTeam(Player.Load(command.User.Id));
                 if (leader.PlayerId != team.Leader.PlayerId)
                 {
                     throw new Exception($"Du bist nicht der Anführer des Teams {team.Name}");
@@ -86,7 +88,7 @@ namespace VT_ALLORANT.Model.Discord
             Player playerToAdd;
             try
             {
-                Player leader = Player.LoadPlayer(command.User.Id);
+                Player leader = Player.Load(command.User.Id);
                 team = Team.LoadTeam(leader);
                 if (leader.PlayerId != team.Leader.PlayerId)
                 {
@@ -116,7 +118,7 @@ namespace VT_ALLORANT.Model.Discord
             Player playerToRemove;
             try
             {
-                Player leader = Player.LoadPlayer(command.User.Id);
+                Player leader = Player.Load(command.User.Id);
                 team = Team.LoadTeam(leader);
                 if (leader.PlayerId != team.Leader.PlayerId)
                 {
@@ -132,13 +134,13 @@ namespace VT_ALLORANT.Model.Discord
             return $"{playerToRemove.Name} wurde vom Team {team.Name} entfernt";
         }
 
-        internal static string ChangeLeader(SocketSlashCommand command)
+        public static string ChangeLeader(SocketSlashCommand command)
         {
             Team team;
             Player newLeader;
             try
             {
-                Player leader = Player.LoadPlayer(command.User.Id);
+                Player leader = Player.Load(command.User.Id);
                 team = Team.LoadTeam(leader);
                 if (leader.PlayerId != team.Leader.PlayerId)
                 {
@@ -156,6 +158,35 @@ namespace VT_ALLORANT.Model.Discord
                 return e.Message;
             }
             return $"{newLeader.Name} ist jetzt der Anführer vom Team {team.Name}";
+        }
+
+        public static string StartMatchmaking(SocketSlashCommand command)
+        {
+            Tournament tournament;
+            try
+            {
+                tournament = Tournament.Load(0);
+            }
+            catch (Exception e)
+            {
+                return e.Message;
+            }
+            return $"Matchmaking für Team {tournament.Name} gestartet";
+        }
+
+        internal static Optional<string> SendFriendRequest(SocketSlashCommand command)
+        {
+            string name = command.Data.Options.ToList()[0].Value.ToString()?.Trim() ?? throw new Exception("Kein Name angegeben");
+            try
+            {
+                Player player = Player.GetPlayerByDiscordUserName(name);
+                ValorantConnection.SendFriendRequest(player.ValorantUser.NAME, player.ValorantUser.TAG);
+            }
+            catch (Exception e)
+            {
+                return e.Message;
+            }
+            return $"Freundschaftsanfrage an {name} gesendet";
         }
     }
 }
