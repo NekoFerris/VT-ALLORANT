@@ -2,6 +2,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 using System.ComponentModel.DataAnnotations;
 using VT_ALLORANT.Controller;
 using System.Reactive.Linq;
+using Microsoft.EntityFrameworkCore;
 
 namespace VT_ALLORANT.Model;
 
@@ -64,18 +65,14 @@ public class Team
     public static Team LoadTeam(string name)
     {
         using DBAccess dBAccess = new();
-        Team t = dBAccess.Teams.FirstOrDefault(t => t.Name == name) ?? throw new Exception("Team nicht gefunden");
-        t.Leader = Player.Load(t.LeaderId);
-        t.Players = Player.GetPlayersForTeam(t);
+        Team t = dBAccess.Teams.Include(t => t.Leader).Include(t => t.Players).FirstOrDefault(t => t.Name == name) ?? throw new Exception("Team nicht gefunden");
         return t;
     }
 
     public static Team Load(Player leader)
     {
         using DBAccess dBAccess = new();
-        Team t = dBAccess.Teams.FirstOrDefault(t => t.LeaderId == leader.PlayerId) ?? throw new Exception($"Team für Spieler {leader.Name} nicht gefunden");
-        t.Players = Player.GetPlayersForTeam(t);
-        t.Leader = t.Players.FirstOrDefault(p => p.PlayerId == t.LeaderId) ?? throw new Exception($"Anführer für Team {t.Name} nicht gefunden");
+        Team t = dBAccess.Teams.Include(t => t.Leader).Include(t => t.Players).FirstOrDefault(t => t.LeaderId == leader.PlayerId) ?? throw new Exception($"Team für Spieler {leader.Name} nicht gefunden");
         return t;
     }
 
@@ -89,12 +86,7 @@ public class Team
     public static List<Team> GetAll()
     {
         using DBAccess dBAccess = new();
-        List<Team> teams = [.. dBAccess.Teams];
-        foreach (Team t in teams)
-        {
-            t.Leader = Player.Load(t.LeaderId);
-            t.Players = Player.GetPlayersForTeam(t);
-        }
+        List<Team> teams = [.. dBAccess.Teams.Include(t => t.Leader).Include(t => t.Players)];
         return teams;
     }
 
@@ -102,15 +94,8 @@ public class Team
     {
         using DBAccess dBAccess = new();
         Player existingPlayer = Players.FirstOrDefault(p => p.PlayerId == player.PlayerId) ?? throw new Exception("Spieler nicht im Team");
-        if (existingPlayer != null)
-        {
-            Leader = existingPlayer;
-            LeaderId = existingPlayer.PlayerId;
-        }
-        else
-        {
-            throw new Exception("Player not found in the team's player list");
-        }
+        Leader = existingPlayer;
+        LeaderId = existingPlayer.PlayerId;
         dBAccess.Teams.Find(this.TeamId)!.LeaderId = LeaderId;
         dBAccess.SaveChanges();
     }
