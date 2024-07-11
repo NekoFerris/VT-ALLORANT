@@ -1,11 +1,9 @@
 using MingweiSamuel.Camille.Enums;
 using MingweiSamuel.Camille;
 using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 using RestSharp;
 using System.Diagnostics;
 using System.Text;
-using VT_ALLORANT.Controller;
 
 namespace VT_ALLORANT.Model.Valorant
 {

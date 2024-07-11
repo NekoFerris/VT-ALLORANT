@@ -9,29 +9,54 @@ namespace VT_ALLORANT.Model;
 
 public enum PlayerRankedScore
 {
-    None,
-    Iron1,
-    Iron2,
-    Iron3,
-    Bronze1,
-    Bronze2,
-    Bronze3,
-    Silver1,
-    Silver2,
-    Silver3,
-    Gold1,
-    Gold2,
-    Gold3,
-    Platinum1,
-    Platinum2,
-    Platinum3,
-    Diamond1,
-    Diamond2,
-    Diamond3,
-    Immortal1,
-    Immortal2,
-    Immortal3,
-    Radiant
+    Iron1 = 10,
+    Iron2 = 10,
+    Iron3 = 10,
+    Bronze1 = 15,
+    Bronze2 = 15,
+    Bronze3 = 15,
+    Silver1 = 20,
+    Silver2 = 20,
+    Silver3 = 20,
+    Gold1 = 25,
+    Gold2 = 25,
+    Gold3 = 25,
+    Platinum1 = 30,
+    Platinum2 = 30,
+    Platinum3 = 30,
+    Diamond1 = 40,
+    Diamond2 = 40,
+    Diamond3 = 40,
+    Immortal1 = 50,
+    Immortal2 = 50,
+    Immortal3 = 50,
+    Radiant = 60
+}
+
+public enum PlayerRanks
+{
+    Iron1 = 1,
+    Iron2 = 2,
+    Iron3 = 3,
+    Bronze1 = 4,
+    Bronze2 = 5,
+    Bronze3 = 6,
+    Silver1 = 7,
+    Silver2 = 8,
+    Silver3 = 9,
+    Gold1 = 10,
+    Gold2 = 11,
+    Gold3 = 12,
+    Platinum1 = 13,
+    Platinum2 = 14,
+    Platinum3 = 15,
+    Diamond1 = 16,
+    Diamond2 = 17,
+    Diamond3 = 18,
+    Immortal1 = 19,
+    Immortal2 = 20,
+    Immortal3 = 21,
+    Radiant = 22
 }
 
 [Table("Players")]
@@ -42,7 +67,7 @@ public class Player
     [ForeignKey("PlayerId")]
     public int PlayerId { get; set; }
     public string Name { get; set; }
-    public PlayerRankedScore RankedScore { get; set; } = PlayerRankedScore.None;
+    public PlayerRanks Rank { get; set; }
     public int DiscordUserId { get; set; }
     public DiscordUser DiscordUser { get; set; }
     public int ValorantUserId { get; set; }

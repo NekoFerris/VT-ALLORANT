@@ -1,6 +1,5 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Logging.Console;
 using VT_ALLORANT.Model;
 using VT_ALLORANT.Model.Discord;
 using VT_ALLORANT.Model.Valorant;

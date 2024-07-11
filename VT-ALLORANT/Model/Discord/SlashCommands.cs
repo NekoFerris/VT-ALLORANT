@@ -1,4 +1,5 @@
 using Discord;
+using Discord.Rest;
 using Discord.WebSocket;
 using VT_ALLORANT.Controller;
 using VT_ALLORANT.Model.Valorant;
@@ -68,7 +69,7 @@ namespace VT_ALLORANT.Model.Discord
             try
             {
                 Player leader = Player.Load(command.User.Id);
-                team = Team.LoadTeam(Player.Load(command.User.Id));
+                team = Team.Load(Player.Load(command.User.Id));
                 if (leader.PlayerId != team.Leader.PlayerId)
                 {
                     throw new Exception($"Du bist nicht der Anführer des Teams {team.Name}");
@@ -89,7 +90,7 @@ namespace VT_ALLORANT.Model.Discord
             try
             {
                 Player leader = Player.Load(command.User.Id);
-                team = Team.LoadTeam(leader);
+                team = Team.Load(leader);
                 if (leader.PlayerId != team.Leader.PlayerId)
                 {
                     throw new Exception($"Du bist nicht der Anführer des Teams {team.Name}");
@@ -119,7 +120,7 @@ namespace VT_ALLORANT.Model.Discord
             try
             {
                 Player leader = Player.Load(command.User.Id);
-                team = Team.LoadTeam(leader);
+                team = Team.Load(leader);
                 if (leader.PlayerId != team.Leader.PlayerId)
                 {
                     throw new Exception("Du bist nicht der Anführer dieses Teams");
@@ -141,7 +142,7 @@ namespace VT_ALLORANT.Model.Discord
             try
             {
                 Player leader = Player.Load(command.User.Id);
-                team = Team.LoadTeam(leader);
+                team = Team.Load(leader);
                 if (leader.PlayerId != team.Leader.PlayerId)
                 {
                     throw new Exception("Du bist nicht der Anführer dieses Teams");
@@ -160,21 +161,7 @@ namespace VT_ALLORANT.Model.Discord
             return $"{newLeader.Name} ist jetzt der Anführer vom Team {team.Name}";
         }
 
-        public static string StartMatchmaking(SocketSlashCommand command)
-        {
-            Tournament tournament;
-            try
-            {
-                tournament = Tournament.Load(0);
-            }
-            catch (Exception e)
-            {
-                return e.Message;
-            }
-            return $"Matchmaking für Team {tournament.Name} gestartet";
-        }
-
-        internal static Optional<string> SendFriendRequest(SocketSlashCommand command)
+        internal static string SendFriendRequest(SocketSlashCommand command)
         {
             string name = command.Data.Options.ToList()[0].Value.ToString()?.Trim() ?? throw new Exception("Kein Name angegeben");
             try
@@ -187,6 +174,138 @@ namespace VT_ALLORANT.Model.Discord
                 return e.Message;
             }
             return $"Freundschaftsanfrage an {name} gesendet";
+        }
+
+        internal static string MatchGame(SocketSlashCommand command)
+        {
+            Team team1;
+            Team team2;
+            try
+            {
+                team1 = Team.LoadTeam(command.Data.Options.ToList()[0].Value.ToString()?.Trim() ?? throw new Exception("Team 1 nicht angegeben"));
+                team2 = Team.LoadTeam(command.Data.Options.ToList()[1].Value.ToString()?.Trim() ?? throw new Exception("Team 2 nicht angegeben"));
+                if (team1.TeamId == team2.TeamId)
+                {
+                    throw new Exception("Zwei mal das selbe Team ausgewählt");
+                }
+                Game game = new(team1, team2, Player.Load(command.User.Id), new(), 0);
+                game.Insert();
+            }
+            catch (Exception e)
+            {
+                return e.Message;
+            }
+            return $"Spiel zwischen {team1.Name} und {team2.Name} erstellt";
+        }
+
+        internal static async Task UpdateRanking(SocketSlashCommand command)
+        {
+            Player player;
+            try
+            {
+                if (command.Data.Options.Count == 0)
+                {
+                    player = Player.Load(command.User.Id);
+                }
+                else
+                {
+                    player = Player.GetPlayerByDiscordUserName(command.Data.Options.ToList()[0].Value.ToString()?.Trim());
+                }
+                MessageComponent rankList = new ComponentBuilder()
+                .WithSelectMenu(new SelectMenuBuilder()
+                    .WithPlaceholder("Rang auswählen")
+                    .WithCustomId($"rank-for:{player.PlayerId}")
+                    .AddOption("Eisen1", "1")
+                    .AddOption("Eisen2", "2")
+                    .AddOption("Eisen3", "3")
+                    .AddOption("Bronze1", "4")
+                    .AddOption("Bronze2", "5")
+                    .AddOption("Bronze3", "6")
+                    .AddOption("Silber1", "7")
+                    .AddOption("Silber2", "8")
+                    .AddOption("Silber3", "9")
+                    .AddOption("Gold1", "10")
+                    .AddOption("Gold2", "11")
+                    .AddOption("Gold3", "12")
+                    .AddOption("Platin1", "13")
+                    .AddOption("Platin2", "14")
+                    .AddOption("Platin3", "15")
+                    .AddOption("Diamant1", "16")
+                    .AddOption("Diamant2", "17")
+                    .AddOption("Diamant3", "18")
+                    .AddOption("Immortal1", "19")
+                    .AddOption("Immortal2", "20")
+                    .AddOption("Immortal3", "21")
+                    .AddOption("Radiant", "22"), 0)
+                    .Build();
+                await command.FollowupAsync("Wähle den neuen Rang aus", components: rankList);
+            }
+            catch (Exception e)
+            {
+                if (command.HasResponded == false)
+                    await command.RespondAsync(e.Message);
+                else
+                    await command.FollowupAsync(e.Message);
+            }
+        }
+
+        internal static async Task JoinTournament(SocketSlashCommand command)
+        {
+            DBAccess dBAccess = new();
+            try
+            {
+                Team joiningTeam = Team.GetAll().FirstOrDefault(t => t.Leader.DiscordUser.DiscordId == command.User.Id) ?? throw new Exception("Du bist in kein Anführer eines Teams");
+                List<Tournament> tournaments = [.. Tournament.GetAll().Where(t => t.OpenForRegistration)];
+                SelectMenuBuilder tournamentListSelectMenuBuilder = new SelectMenuBuilder()
+                    .WithPlaceholder("Turnier auswählen")
+                    .WithCustomId($"join-tournament:{joiningTeam.TeamId}");
+                foreach (Tournament tournament in tournaments)
+                {
+                    tournamentListSelectMenuBuilder.AddOption(tournament.Name, tournament.TournamentId.ToString());
+                }
+                MessageComponent tournamentList = new ComponentBuilder()
+                .WithSelectMenu(tournamentListSelectMenuBuilder, 0).Build();
+                await command.FollowupAsync("Wähle ein Turnier aus", components: tournamentList);
+            }
+            catch (Exception e)
+            {
+                if (command.HasResponded == false)
+                    await command.RespondAsync(e.Message);
+                else
+                    await command.FollowupAsync(e.Message);
+            }
+        }
+
+        internal static async Task LeaveTournament(SocketSlashCommand command)
+        {
+            using DBAccess dBAccess = new();
+            try
+            {
+                Team leavingTeam = dBAccess.Teams.FirstOrDefault(t => t.Leader.DiscordUser.DiscordId == command.User.Id) ?? throw new Exception("Du bist in kein Anführer eines Teams");
+                Tournament tournament = Tournament.Load(int.Parse(command.Data.Options.ToList()[0].Value.ToString()?.Trim() ?? throw new Exception("Kein Turnier angegeben")));
+                tournament.RemoveTeam(leavingTeam);
+            }
+            catch (Exception e)
+            {
+                if (command.HasResponded == false)
+                    await command.RespondAsync(e.Message);
+                else
+                    await command.FollowupAsync(e.Message);
+            }
+        }
+
+        internal static string CreateTournament(SocketSlashCommand command)
+        {
+            try
+            {
+                Tournament.Create(command.Data.Options.ToList()[0].Value.ToString()?.Trim() ?? throw new Exception("Kein Turniername angegeben"));
+                return $"Turnier {command.Data.Options.ToList()[0].Value.ToString()?.Trim()} erstellt";
+            }
+            catch (Exception e)
+            {
+                return e.Message;
+            }
+
         }
     }
 }

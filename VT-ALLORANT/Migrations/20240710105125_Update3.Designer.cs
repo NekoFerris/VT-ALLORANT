@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using VT_ALLORANT.Controller;
 
@@ -10,9 +11,11 @@ using VT_ALLORANT.Controller;
 namespace VT_ALLORANT.Migrations
 {
     [DbContext(typeof(DBAccess))]
-    partial class DBAccessModelSnapshot : ModelSnapshot
+    [Migration("20240710105125_Update3")]
+    partial class Update3
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "8.0.6");
@@ -179,15 +182,9 @@ namespace VT_ALLORANT.Migrations
                     b.Property<int>("CurrentStage")
                         .HasColumnType("INTEGER");
 
-                    b.Property<int>("MaxTeamRank")
-                        .HasColumnType("INTEGER");
-
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasColumnType("TEXT");
-
-                    b.Property<bool>("OpenForRegistration")
-                        .HasColumnType("INTEGER");
 
                     b.HasKey("TournamentId");
 

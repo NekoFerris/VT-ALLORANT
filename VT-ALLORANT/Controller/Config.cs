@@ -1,4 +1,3 @@
-using System.Numerics;
 using Newtonsoft.Json;
 
 public class Config

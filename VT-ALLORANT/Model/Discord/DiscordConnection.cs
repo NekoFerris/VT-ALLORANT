@@ -1,5 +1,3 @@
-using System.Net.WebSockets;
-using System.Threading.Tasks;
 using Discord;
 using Discord.WebSocket;
 
@@ -18,6 +16,7 @@ public class DiscordConnection
         _client = new DiscordSocketClient(config);
         _client.Log += Log;
         _client.SlashCommandExecuted += SlashCommandHandler;
+        _client.SelectMenuExecuted += SelectMenuHandler;
         _client.Ready += async () =>
         {
             await CreateCommands();
@@ -25,6 +24,26 @@ public class DiscordConnection
         Config configFile = new();
         await _client.LoginAsync(TokenType.Bot, configFile.DiscordApiKey);
         await _client.StartAsync();
+    }
+
+    private async Task SelectMenuHandler(SocketMessageComponent component)
+    {
+        await component.DeferAsync();
+        string type = component.Data.CustomId.Split(":")[0];
+        switch (type)
+        {
+            case "team":
+                await SelectMenuCommands.TeamSelectMenu(component);
+                break;
+            case "player":
+                await SelectMenuCommands.PlayerSelectMenu(component);
+                break;
+            case "rank-for":
+                await SelectMenuCommands.RankSelectMenu(component);
+                break;
+            default:
+                break;
+        }
     }
 
     private Task Log(LogMessage arg)
@@ -44,15 +63,8 @@ public class DiscordConnection
                 SocketGuild guild = _client!.GetGuild(configFile.GuildId);
 
                 IReadOnlyCollection<SocketApplicationCommand> guildCommands = await guild.GetApplicationCommandsAsync();
-                IReadOnlyCollection<SocketApplicationCommand> globalCommands = await _client.GetGlobalApplicationCommandsAsync();
 
-                IEnumerable<Task> deleteGuildCommandsTasks = guildCommands.Select(command => command.DeleteAsync());
-                IEnumerable<Task> deleteGlobalCommandsTasks = globalCommands.Select(command => command.DeleteAsync());
-
-                await Task.WhenAll(deleteGuildCommandsTasks);
-                await Task.WhenAll(deleteGlobalCommandsTasks);
-
-                List<Task> tasks = [];
+                List<SlashCommandProperties> commands = [];
 
                 SlashCommandBuilder guildCommand = new SlashCommandBuilder()
                     .WithName("register")
@@ -60,54 +72,78 @@ public class DiscordConnection
                     .AddOption("name", ApplicationCommandOptionType.String, "Name des Valorant Accounts", isRequired: true)
                     .AddOption("tag", ApplicationCommandOptionType.String, "Tag des Valorant Accounts", isRequired: true)
                     .AddOption("vtname", ApplicationCommandOptionType.String, "VTuber Name", isRequired: true);
-                tasks.Add(guild.CreateApplicationCommandAsync(guildCommand.Build()));
+                commands.Add(guildCommand.Build());
 
                 guildCommand = new SlashCommandBuilder()
                     .WithName("unregister")
                     .WithDescription("Registrierung aufheben");
-                tasks.Add(guild.CreateApplicationCommandAsync(guildCommand.Build()));
+                commands.Add(guildCommand.Build());
 
                 guildCommand = new SlashCommandBuilder()
                     .WithName("create-team")
                     .WithDescription("Team erstellen")
                     .AddOption("name", ApplicationCommandOptionType.String, "Name des Teams", isRequired: true);
-                tasks.Add(guild.CreateApplicationCommandAsync(guildCommand.Build()));
+                commands.Add(guildCommand.Build());
 
                 guildCommand = new SlashCommandBuilder()
                     .WithName("delete-team")
                     .WithDescription("Team auflösen");
-                tasks.Add(guild.CreateApplicationCommandAsync(guildCommand.Build()));
+                commands.Add(guildCommand.Build());
 
                 guildCommand = new SlashCommandBuilder()
                     .WithName("change-leader")
                     .WithDescription("Anführer wechseln")
                     .AddOption("name", ApplicationCommandOptionType.User, "Name des neuen Anführers", isRequired: true);
-                tasks.Add(guild.CreateApplicationCommandAsync(guildCommand.Build()));
+                commands.Add(guildCommand.Build());
 
                 guildCommand = new SlashCommandBuilder()
                     .WithName("add-player")
                     .WithDescription("Spieler hinzufügen")
                     .AddOption("name", ApplicationCommandOptionType.User, "Name des Spielers", isRequired: true);
-                tasks.Add(guild.CreateApplicationCommandAsync(guildCommand.Build()));
+                commands.Add(guildCommand.Build());
 
                 guildCommand = new SlashCommandBuilder()
                     .WithName("remove-player")
                     .WithDescription("Spieler entfernen")
                     .AddOption("name", ApplicationCommandOptionType.User, "Name des Spielers", isRequired: true);
-                tasks.Add(guild.CreateApplicationCommandAsync(guildCommand.Build()));
+                commands.Add(guildCommand.Build());
 
                 guildCommand = new SlashCommandBuilder()
-                    .WithName("start-matchmaking")
-                    .WithDescription("Matchmaking starten");
-                tasks.Add(guild.CreateApplicationCommandAsync(guildCommand.Build()));
+                    .WithName("match-game")
+                    .WithDescription("Erstellt ein Spiel")
+                    .AddOption("team1", ApplicationCommandOptionType.String, "Name des ersten Teams", isRequired: true)
+                    .AddOption("team2", ApplicationCommandOptionType.String, "Name des zweiten Teams", isRequired: true);
+                commands.Add(guildCommand.Build());
 
                 guildCommand = new SlashCommandBuilder()
-                    .WithName("send-friend-request")
-                    .WithDescription("Freundschaftsanfrage senden")
-                    .AddOption("name", ApplicationCommandOptionType.User, "Name des Spielers", isRequired: true);
-                tasks.Add(guild.CreateApplicationCommandAsync(guildCommand.Build()));
+                    .WithName("update-ranking")
+                    .WithDescription("Ändere den Rang eines Spielers")
+                    .AddOption("name", ApplicationCommandOptionType.User, "Name des Spielers", isRequired: false);
+                commands.Add(guildCommand.Build());
 
-                Parallel.ForEach(tasks, async task => await task);
+                guildCommand = new SlashCommandBuilder()
+                    .WithName("create-tournament")
+                    .WithDescription("Tritt einem Turnier bei")
+                    .AddOption("name", ApplicationCommandOptionType.String, "Name des Turniers", isRequired: true);
+                commands.Add(guildCommand.Build());
+
+                guildCommand = new SlashCommandBuilder()
+                    .WithName("join-tournament")
+                    .WithDescription("Tritt einem Turnier bei");
+                commands.Add(guildCommand.Build());
+
+                guildCommand = new SlashCommandBuilder()
+                    .WithName("leave-tournament")
+                    .WithDescription("Verlasse ein Turnier");
+                commands.Add(guildCommand.Build());
+
+                //guildCommand = new SlashCommandBuilder()
+                //    .WithName("send-friend-request")
+                //    .WithDescription("Freundschaftsanfrage senden")
+                //    .AddOption("name", ApplicationCommandOptionType.User, "Name des Spielers", isRequired: true);
+                //tasks.Add(guild.CreateApplicationCommandAsync(guildCommand.Build()));
+
+                Parallel.ForEach(commands, async task => await AddGuildCommand(guildCommands, task, guild));
 
 
             }
@@ -123,6 +159,18 @@ public class DiscordConnection
                 Console.WriteLine(exception);
             }
         });
+    }
+
+    private async Task AddGuildCommand(IReadOnlyCollection<SocketApplicationCommand> ExistingSocketApplicationCommands, SlashCommandProperties socketSlashCommand, SocketGuild guild)
+    {
+        if(ExistingSocketApplicationCommands.Any(command => command.Name == socketSlashCommand.Name.Value))
+        {
+            return;
+        }
+        else
+        {
+            await guild.CreateApplicationCommandAsync(socketSlashCommand);
+        }
     }
 
     private async Task SlashCommandHandler(SocketSlashCommand command)
@@ -153,15 +201,26 @@ public class DiscordConnection
                 case "remove-player":
                     await command.ModifyOriginalResponseAsync(properties => properties.Content = SlashCommands.RemovePlayer(command));
                     break;
-                case "start-matchmaking":
-                    await command.ModifyOriginalResponseAsync(properties => properties.Content = SlashCommands.StartMatchmaking(command));
+                case "match-game":
+                    await command.ModifyOriginalResponseAsync(properties => properties.Content = SlashCommands.MatchGame(command));
                     break;
-                case "send-friend-request":
-                    await command.ModifyOriginalResponseAsync(properties => properties.Content = SlashCommands.SendFriendRequest(command));
+                case "update-ranking":
+                    await SlashCommands.UpdateRanking(command);
                     break;
+                case "create-tournament":
+                    await command.ModifyOriginalResponseAsync(properties => properties.Content = SlashCommands.CreateTournament(command));
+                    break;
+                case "leave-tournament":
+                    await SlashCommands.LeaveTournament(command);
+                    break;
+                case "join-tournament":
+                    await SlashCommands.JoinTournament(command);
+                    break;
+                //case "send-friend-request":
+                //    await command.ModifyOriginalResponseAsync(properties => properties.Content = SlashCommands.SendFriendRequest(command));
+                //    break;
                 default:
-                    await command.ModifyOriginalResponseAsync(properties => properties.Content = "Command not found");
-                    break;
+                    return;
             }
         }
         catch (Exception ex)

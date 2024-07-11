@@ -2,7 +2,6 @@ using System.ComponentModel.DataAnnotations.Schema;
 using System.ComponentModel.DataAnnotations;
 using VT_ALLORANT.Controller;
 using System.Reactive.Linq;
-using Microsoft.EntityFrameworkCore;
 
 namespace VT_ALLORANT.Model;
 
@@ -18,7 +17,9 @@ public class Team
     public int? LeaderId { get; set; }
     public Player Leader { get; set; } = null!;
     public ICollection<Player> Players { get; set; } = [];
-    public ICollection<Tournament> Tournaments {get ;set;} = [];
+    public ICollection<Tournament> Tournaments { get; set; } = [];
+    public int PlayerCount => Players.Count;
+    public int TeamRank => Players.Sum(p => (int)p.Rank);
 
     public static void Create(string name, Player leader)
     {
@@ -60,7 +61,16 @@ public class Team
         return t;
     }
 
-    public static Team LoadTeam(Player leader)
+    public static Team LoadTeam(string name)
+    {
+        using DBAccess dBAccess = new();
+        Team t = dBAccess.Teams.FirstOrDefault(t => t.Name == name) ?? throw new Exception("Team nicht gefunden");
+        t.Leader = Player.Load(t.LeaderId);
+        t.Players = Player.GetPlayersForTeam(t);
+        return t;
+    }
+
+    public static Team Load(Player leader)
     {
         using DBAccess dBAccess = new();
         Team t = dBAccess.Teams.FirstOrDefault(t => t.LeaderId == leader.PlayerId) ?? throw new Exception($"Team für Spieler {leader.Name} nicht gefunden");

@@ -13,7 +13,10 @@ public class Tournament
     public ICollection<Player> Moderators { get; set; } = []; // Default value new List<Team>()
     public ICollection<Player> Observers { get; set; } = []; // Default value new List<Team>()
     public ICollection<Game> Games { get; set; } = []; // Default value new List<Game>()
+    public bool OpenForRegistration { get; set; } = false; // Default value false
+    public int MaxTeamRank { get; set; } = 0; // Default value 0
     public int CurrentStage { get; set; } = 0; // Default value 0
+    public int MaxTeams { get; internal set; }
 
     // Constructor
     public Tournament()
@@ -24,7 +27,7 @@ public class Tournament
     // Methods
     public void AddTeam(Team team)
     {
-        DBAccess dBAccess = new();
+        using DBAccess dBAccess = new();
         dBAccess.TournamentTeams.Attach(new TournamentTeam()
         {
             Tournament = this,
@@ -35,20 +38,20 @@ public class Tournament
 
     public void RemoveTeam(Team team)
     {
-        DBAccess dBAccess = new();
+        using DBAccess dBAccess = new();
         dBAccess.TournamentTeams.Remove(dBAccess.TournamentTeams.Find(this.TournamentId, team.TeamId) ?? throw new Exception($"Team {team.Name} nicht im Turnier {this.Name} gefunden"));
         dBAccess.SaveChanges();
     }
 
     public static Tournament Load(int tournamentId)
     {
-        DBAccess dBAccess = new();
+        using DBAccess dBAccess = new();
         return dBAccess.Tournaments.Include(t => t.Teams).Include(t => t.Moderators).Include(t => t.Observers).Include(t => t.Games).FirstOrDefault(t => t.TournamentId == tournamentId) ?? throw new Exception("Kein Turnier gefunden");
     }
 
     public void AddModerator(Player moderator)
     {
-        DBAccess dBAccess = new();
+        using DBAccess dBAccess = new();
         dBAccess.TournamentModerators.Attach(new TournamentModerator()
         {
             Tournament = this,
@@ -59,14 +62,14 @@ public class Tournament
 
     public void RemoveModerator(Player moderator)
     {
-        DBAccess dBAccess = new();
+        using DBAccess dBAccess = new();
         dBAccess.TournamentModerators.Remove(dBAccess.TournamentModerators.Find(this.TournamentId, moderator.PlayerId) ?? throw new Exception($"Spieler {moderator.Name} nicht als Moderator im Turnier {this.Name} gefunden"));
         dBAccess.SaveChanges();
     }
 
     public void AddObserver(Player player)
     {
-        DBAccess dBAccess = new();
+        using DBAccess dBAccess = new();
         dBAccess.TournamentObservers.Attach(new TournamentObserver()
         {
             Tournament = this,
@@ -82,14 +85,23 @@ public class Tournament
         dBAccess.SaveChanges();
     }
 
-    public void StartMatchmaking()
+    internal static void Create(string v)
     {
-        foreach (Team team in Teams)
+        using DBAccess dBAccess = new();
+        Tournament tournamentToAdd = new()
         {
-            if (team.Players.Count < 5)
-            {
-                throw new Exception($"Team {team.Name} hat zu wenig Spieler");
-            }
-        }
+            Name = v,
+            OpenForRegistration = true,
+            MaxTeamRank = 11,
+            CurrentStage = 0
+        };
+        dBAccess.Tournaments.Attach(tournamentToAdd);
+        dBAccess.SaveChanges();
+    }
+
+    internal static ICollection<Tournament> GetAll()
+    {
+        using DBAccess dBAccess = new();
+        return [.. dBAccess.Tournaments];
     }
 }

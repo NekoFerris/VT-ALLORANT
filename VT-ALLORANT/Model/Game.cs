@@ -1,7 +1,6 @@
 namespace VT_ALLORANT.Model;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.ComponentModel.DataAnnotations;
-using Microsoft.EntityFrameworkCore;
 using VT_ALLORANT.Controller;
 
 [Table("Games")]
@@ -38,6 +37,13 @@ public class Game
         Observers = observers;
         TournamentId = tournamentId;
         Stage = stage;
+    }
+
+    public void Insert()
+    {
+        using DBAccess dBAccess = new();
+        dBAccess.Games.Add(this);
+        dBAccess.SaveChanges();
     }
 
     public void EndGame(Team winner)
@@ -87,18 +93,18 @@ public class Game
 
     public void OpenGame()
     {
-        //open a valorant match
+
     }
     public void InvitePlayers()
     {
-        //invite players to valorant match
+
     }
     public void InviteObservers()
     {
-        //invite observers to valorant match
+
     }
     public void InviteModerator()
     {
-        //invite moderator to valorant match
+
     }
 }
