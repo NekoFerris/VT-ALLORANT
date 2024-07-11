@@ -38,7 +38,7 @@ public class SelectMenuCommands()
     {
         string[] data = component.Data.CustomId.Split(":");
         Team joiningTeam = Team.Load(Player.Load(component.User.Id));
-        Tournament tournament = Tournament.Load(Int32.Parse(data[1]));
+        Tournament tournament = Tournament.Load(Int32.Parse(string.Join(", ", component.Data.Values)));
         if (tournament.Teams.Count < tournament.MaxTeams)
         {
             tournament.AddTeam(joiningTeam);
@@ -53,9 +53,12 @@ public class SelectMenuCommands()
     public static async Task LeaveTournamentSelectMenu(SocketMessageComponent component)
     {
         string[] data = component.Data.CustomId.Split(":");
-        Team leavingTeam = Team.Load(Player.Load(component.User.Id));
-        Tournament tournament = Tournament.Load(Int32.Parse(data[1]));
-        tournament.RemoveTeam(leavingTeam);
-        await component.FollowupAsync($"Team {leavingTeam.Name} erfolgreich von {tournament.Name} abgemeldet");
+        Team joiningTeam = Team.Load(Player.Load(component.User.Id));
+        Tournament tournament = Tournament.Load(Int32.Parse(string.Join(", ", component.Data.Values)));
+        if (tournament.Teams.Count < tournament.MaxTeams)
+        {
+            tournament.RemoveTeam(joiningTeam);
+            await component.FollowupAsync($"Team {joiningTeam.Name} erfolgreich von {tournament.Name} abgemeldet");
+        }
     }
 }

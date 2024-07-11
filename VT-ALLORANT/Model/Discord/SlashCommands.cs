@@ -256,6 +256,10 @@ namespace VT_ALLORANT.Model.Discord
             {
                 Team joiningTeam = Team.GetAll().FirstOrDefault(t => t.Leader.DiscordUser.DiscordId == command.User.Id) ?? throw new Exception("Du bist in kein Anführer eines Teams");
                 List<Tournament> tournaments = [.. Tournament.GetAll().Where(t => t.OpenForRegistration)];
+                if (tournaments.Count == 0)
+                {
+                    await command.FollowupAsync("Es gibt keine offenen Turniere");
+                }
                 SelectMenuBuilder tournamentListSelectMenuBuilder = new SelectMenuBuilder()
                     .WithPlaceholder("Turnier auswählen")
                     .WithCustomId($"join-tournament:{joiningTeam.TeamId}");
@@ -281,9 +285,23 @@ namespace VT_ALLORANT.Model.Discord
             using DBAccess dBAccess = new();
             try
             {
-                Team leavingTeam = dBAccess.Teams.FirstOrDefault(t => t.Leader.DiscordUser.DiscordId == command.User.Id) ?? throw new Exception("Du bist in kein Anführer eines Teams");
-                Tournament tournament = Tournament.Load(int.Parse(command.Data.Options.ToList()[0].Value.ToString()?.Trim() ?? throw new Exception("Kein Turnier angegeben")));
-                tournament.RemoveTeam(leavingTeam);
+                Team joiningTeam = Team.GetAll().FirstOrDefault(t => t.Leader.DiscordUser.DiscordId == command.User.Id) ?? throw new Exception("Du bist in kein Anführer eines Teams");
+                List<Tournament> tournaments = [.. Tournament.GetAll().Where(t => t.Teams.Any(t => t.TeamId == joiningTeam.TeamId))];
+                if (tournaments.Count == 0)
+                {
+                    await command.FollowupAsync("Ihr seit in keinem Turnier angemeldet");
+                    return;
+                }
+                SelectMenuBuilder tournamentListSelectMenuBuilder = new SelectMenuBuilder()
+                    .WithPlaceholder("Turnier auswählen")
+                    .WithCustomId($"leave-tournament:{joiningTeam.TeamId}");
+                foreach (Tournament tournament in tournaments)
+                {
+                    tournamentListSelectMenuBuilder.AddOption(tournament.Name, tournament.TournamentId.ToString());
+                }
+                MessageComponent tournamentList = new ComponentBuilder()
+                .WithSelectMenu(tournamentListSelectMenuBuilder, 0).Build();
+                await command.FollowupAsync("Wähle ein Turnier aus", components: tournamentList);
             }
             catch (Exception e)
             {

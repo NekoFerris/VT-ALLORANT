@@ -89,7 +89,13 @@ public class Team
     public static List<Team> GetAll()
     {
         using DBAccess dBAccess = new();
-        return [.. dBAccess.Teams];
+        List<Team> teams = [.. dBAccess.Teams];
+        foreach (Team t in teams)
+        {
+            t.Leader = Player.Load(t.LeaderId);
+            t.Players = Player.GetPlayersForTeam(t);
+        }
+        return teams;
     }
 
     public void SetLeader(Player player)

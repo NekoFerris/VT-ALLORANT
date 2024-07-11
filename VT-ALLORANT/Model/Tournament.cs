@@ -39,7 +39,7 @@ public class Tournament
     public void RemoveTeam(Team team)
     {
         using DBAccess dBAccess = new();
-        dBAccess.TournamentTeams.Remove(dBAccess.TournamentTeams.Find(this.TournamentId, team.TeamId) ?? throw new Exception($"Team {team.Name} nicht im Turnier {this.Name} gefunden"));
+        dBAccess.TournamentTeams.Remove(dBAccess.TournamentTeams.Find(team.TeamId, TournamentId) ?? throw new Exception($"Team {team.Name} nicht im Turnier {this.Name} gefunden"));
         dBAccess.SaveChanges();
     }
 
@@ -93,15 +93,16 @@ public class Tournament
             Name = v,
             OpenForRegistration = true,
             MaxTeamRank = 11,
+            MaxTeams = 128,
             CurrentStage = 0
         };
-        dBAccess.Tournaments.Attach(tournamentToAdd);
+        dBAccess.Tournaments.Add(tournamentToAdd);
         dBAccess.SaveChanges();
     }
 
     internal static ICollection<Tournament> GetAll()
     {
         using DBAccess dBAccess = new();
-        return [.. dBAccess.Tournaments];
+        return [.. dBAccess.Tournaments.Include(t => t.Teams).Include(t => t.Moderators).Include(t => t.Observers).Include(t => t.Games)];
     }
 }

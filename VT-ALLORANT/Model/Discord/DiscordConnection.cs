@@ -41,6 +41,12 @@ public class DiscordConnection
             case "rank-for":
                 await SelectMenuCommands.RankSelectMenu(component);
                 break;
+            case "join-tournament":
+                await SelectMenuCommands.JoinTournamentSelectMenu(component);
+                break;
+            case "leave-tournament":
+                await SelectMenuCommands.LeaveTournamentSelectMenu(component);
+                break;
             default:
                 break;
         }
