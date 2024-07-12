@@ -22,9 +22,13 @@ public class Game
     public int TournamentId { get; set; }
     public int Stage { get; set; }
 
-    public Game()
+#pragma warning disable CS8618
+    public Game()    
     {
+
     }
+#pragma warning restore CS8618
+
 
     public Game(Team team1, Team team2, Player moderator, List<Player> observers, int tournamentId, int stage = 0)
     {

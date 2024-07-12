@@ -1,5 +1,4 @@
 using Discord;
-using Discord.Rest;
 using Discord.WebSocket;
 using VT_ALLORANT.Controller;
 using VT_ALLORANT.Model.Valorant;
@@ -58,7 +57,7 @@ namespace VT_ALLORANT.Model.Discord
 
         public static string CreateTeam(SocketSlashCommand command)
         {
-            string teamName = command.Data.Options.ToList()[0].Value.ToString()?.Trim() ?? throw new Exception("Kein Teamname angegeben");
+            string teamName = command.Data.Options.First().Options.ToList()[0].Value.ToString()?.Trim() ?? throw new Exception("Kein Teamname angegeben");
             Team.Create(teamName, Player.Load(command.User.Id));
             return $"Team {teamName} erstellt";
         }
@@ -97,12 +96,12 @@ namespace VT_ALLORANT.Model.Discord
                 }
                 if (team.Players.Count >= team.MaxPlayers)
                 {
-                    throw new Exception("Das Team ist bereits voll");
+                    throw new Exception($"Das Team {team.Name} ist bereits voll");
                 }
-                playerToAdd = Player.GetPlayerByDiscordUserName(command.Data.Options.ToList()[0].Value.ToString()?.Trim() ?? throw new Exception("Kein Spieler angegeben"));
-                if (team.Players.Contains(playerToAdd))
+                playerToAdd = Player.GetPlayerByDiscordUserName(command.Data.Options.First().Options.First().Options.ToList()[0].Value.ToString()?.Trim() ?? throw new Exception("Kein Spieler angegeben"));
+                if (team.Players.Any(p => p.PlayerId == playerToAdd.PlayerId))
                 {
-                    throw new Exception($"{playerToAdd.Name} ist bereits im Team");
+                    throw new Exception($"{playerToAdd.Name} ist bereits im Team {team.Name}");
                 }
                 team.AddPlayer(playerToAdd);
             }
@@ -125,7 +124,7 @@ namespace VT_ALLORANT.Model.Discord
                 {
                     throw new Exception("Du bist nicht der Anführer dieses Teams");
                 }
-                playerToRemove = Player.GetPlayerByDiscordUserName(command.Data.Options.ToList()[0].Value.ToString()?.Trim() ?? throw new Exception("Kein Spieler angegeben"));
+                playerToRemove = Player.GetPlayerByDiscordUserName(command.Data.Options.First().Options.First().Options.ToList()[0].Value.ToString()?.Trim() ?? throw new Exception("Kein Spieler angegeben"));
                 team.RemovePlayer(playerToRemove);
             }
             catch (Exception e)
@@ -147,7 +146,7 @@ namespace VT_ALLORANT.Model.Discord
                 {
                     throw new Exception("Du bist nicht der Anführer dieses Teams");
                 }
-                newLeader = Player.GetPlayerByDiscordUserName(command.Data.Options.ToList()[0].Value.ToString()?.Trim() ?? throw new Exception("Kein Spieler angegeben"));
+                newLeader = Player.GetPlayerByDiscordUserName(command.Data.Options.First().Options.First().Options.ToList()[0].Value.ToString()?.Trim() ?? throw new Exception("Kein Spieler angegeben"));
                 if (newLeader.PlayerId == team.Leader.PlayerId)
                 {
                     throw new Exception("Du bist bereits der Anführer dieses Teams");
@@ -209,7 +208,7 @@ namespace VT_ALLORANT.Model.Discord
                 }
                 else
                 {
-                    player = Player.GetPlayerByDiscordUserName(command.Data.Options.ToList()[0].Value.ToString()?.Trim());
+                    player = Player.GetPlayerByDiscordUserName(command.Data.Options.ToList()[0].Value.ToString()?.Trim()!);
                 }
                 MessageComponent rankList = new ComponentBuilder()
                 .WithSelectMenu(new SelectMenuBuilder()

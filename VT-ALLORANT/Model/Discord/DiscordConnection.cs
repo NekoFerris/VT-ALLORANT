@@ -10,17 +10,13 @@ public class DiscordConnection
     {
         DiscordSocketConfig config = new DiscordSocketConfig()
         {
-            // Other config options can be presented here.
             GatewayIntents = GatewayIntents.AllUnprivileged
         };
         _client = new DiscordSocketClient(config);
         _client.Log += Log;
         _client.SlashCommandExecuted += SlashCommandHandler;
         _client.SelectMenuExecuted += SelectMenuHandler;
-        _client.Ready += async () =>
-        {
-            await CreateCommands();
-        };
+        _client.Ready += CreateCommands;
         Config configFile = new();
         await _client.LoginAsync(TokenType.Bot, configFile.DiscordApiKey);
         await _client.StartAsync();
@@ -32,12 +28,6 @@ public class DiscordConnection
         string type = component.Data.CustomId.Split(":")[0];
         switch (type)
         {
-            case "team":
-                await SelectMenuCommands.TeamSelectMenu(component);
-                break;
-            case "player":
-                await SelectMenuCommands.PlayerSelectMenu(component);
-                break;
             case "rank-for":
                 await SelectMenuCommands.RankSelectMenu(component);
                 break;
@@ -85,7 +75,7 @@ public class DiscordConnection
         });
     }
 
-    public List<SlashCommandProperties> AvailabaleGuildCommands(SocketGuild guild)
+    public static List<SlashCommandProperties> AvailabaleGuildCommands(SocketGuild guild)
     {
                 List<SlashCommandProperties> commands = [];
                 SlashCommandBuilder guildCommand = new SlashCommandBuilder()
@@ -102,32 +92,44 @@ public class DiscordConnection
                 commands.Add(guildCommand.Build());
 
                 guildCommand = new SlashCommandBuilder()
-                    .WithName("create-team")
-                    .WithDescription("Team erstellen")
-                    .AddOption("name", ApplicationCommandOptionType.String, "Name des Teams", isRequired: true);
-                commands.Add(guildCommand.Build());
-
-                guildCommand = new SlashCommandBuilder()
-                    .WithName("delete-team")
-                    .WithDescription("Team auflösen");
-                commands.Add(guildCommand.Build());
-
-                guildCommand = new SlashCommandBuilder()
-                    .WithName("change-leader")
-                    .WithDescription("Anführer wechseln")
-                    .AddOption("name", ApplicationCommandOptionType.User, "Name des neuen Anführers", isRequired: true);
-                commands.Add(guildCommand.Build());
-
-                guildCommand = new SlashCommandBuilder()
-                    .WithName("add-player")
-                    .WithDescription("Spieler hinzufügen")
-                    .AddOption("name", ApplicationCommandOptionType.User, "Name des Spielers", isRequired: true);
-                commands.Add(guildCommand.Build());
-
-                guildCommand = new SlashCommandBuilder()
-                    .WithName("remove-player")
-                    .WithDescription("Spieler entfernen")
-                    .AddOption("name", ApplicationCommandOptionType.User, "Name des Spielers", isRequired: true);
+                    .WithName("team")
+                    .WithDescription("Team Verwaltung")
+                    .AddOption(new SlashCommandOptionBuilder()
+                        .WithType(ApplicationCommandOptionType.SubCommand)
+                        .WithName("create")
+                        .WithDescription("Team erstellen")
+                        .AddOption("name", ApplicationCommandOptionType.String, "Name des Teams", isRequired: true)
+                    ).AddOption(new SlashCommandOptionBuilder()
+                        .WithType(ApplicationCommandOptionType.SubCommand)
+                        .WithName("delete")
+                        .WithDescription("Team auflösen")
+                    ).AddOption(new SlashCommandOptionBuilder()
+                        .WithType(ApplicationCommandOptionType.SubCommandGroup)
+                        .WithName("change")
+                        .WithDescription("Einstellungen ändern")
+                        .AddOption(new SlashCommandOptionBuilder()
+                            .WithType(ApplicationCommandOptionType.SubCommand)
+                            .WithName("leader")
+                            .WithDescription("Team erstellen")
+                            .AddOption("name", ApplicationCommandOptionType.String, "Name des neuen Anführers", isRequired: true)
+                        )
+                    ).AddOption(new SlashCommandOptionBuilder()
+                        .WithType(ApplicationCommandOptionType.SubCommandGroup)
+                        .WithName("player")
+                        .WithDescription("Spiler hinzufügen oder entfernen")
+                        .AddOption(new SlashCommandOptionBuilder()
+                            .WithType(ApplicationCommandOptionType.SubCommand)
+                            .WithName("add")
+                            .WithDescription("Spieler hinzufügen")
+                            .AddOption("name", ApplicationCommandOptionType.User, "Hinzuzufügender Spieler", isRequired: true)
+                        )
+                        .AddOption(new SlashCommandOptionBuilder()
+                            .WithType(ApplicationCommandOptionType.SubCommand)
+                            .WithName("remove")
+                            .WithDescription("Spieler entfernen")
+                            .AddOption("name", ApplicationCommandOptionType.User, "Zu entferndender Spieler", isRequired: true)
+                        )
+                    );
                 commands.Add(guildCommand.Build());
 
                 guildCommand = new SlashCommandBuilder()
@@ -180,12 +182,18 @@ public class DiscordConnection
     {
         IReadOnlyCollection<SocketApplicationCommand> oldGuildCommands = await guild.GetApplicationCommandsAsync();
         IEnumerable<Task> deleteGuildCommandsTasks = oldGuildCommands.Select(command => command.DeleteAsync());
-        Task.WaitAll(deleteGuildCommandsTasks.ToArray());
+        foreach (Task task in deleteGuildCommandsTasks)
+        {
+            await task;
+        }
         List<SlashCommandProperties> newGuildCommands = AvailabaleGuildCommands(guild);
-        Parallel.ForEach(newGuildCommands, async task => await AddGuildCommand(oldGuildCommands, task, guild));
+        foreach (SlashCommandProperties command in newGuildCommands)
+        {
+            await guild.CreateApplicationCommandAsync(command);
+        }
     }
 
-    private async Task AddGuildCommand(IReadOnlyCollection<SocketApplicationCommand> ExistingSocketApplicationCommands, SlashCommandProperties socketSlashCommand, SocketGuild guild)
+    private static async Task AddGuildCommand(IReadOnlyCollection<SocketApplicationCommand> ExistingSocketApplicationCommands, SlashCommandProperties socketSlashCommand, SocketGuild guild)
     {
         if(ExistingSocketApplicationCommands.Any(command => command.Name == socketSlashCommand.Name.Value))
         {
@@ -210,20 +218,35 @@ public class DiscordConnection
                 case "unregister":
                     await command.ModifyOriginalResponseAsync(properties => properties.Content = SlashCommands.Unregister(command));
                     break;
-                case "create-team":
-                    await command.ModifyOriginalResponseAsync(properties => properties.Content = SlashCommands.CreateTeam(command));
-                    break;
-                case "delete-team":
-                    await command.ModifyOriginalResponseAsync(properties => properties.Content = SlashCommands.DeleteTeam(command));
-                    break;
-                case "change-leader":
-                    await command.ModifyOriginalResponseAsync(properties => properties.Content = SlashCommands.ChangeLeader(command));
-                    break;
-                case "add-player":
-                    await command.ModifyOriginalResponseAsync(properties => properties.Content = SlashCommands.AddPlayer(command));
-                    break;
-                case "remove-player":
-                    await command.ModifyOriginalResponseAsync(properties => properties.Content = SlashCommands.RemovePlayer(command));
+                case "team":
+                    switch(command.Data.Options.First().Name)
+                    {
+                        case "create":
+                            await command.ModifyOriginalResponseAsync(properties => properties.Content = SlashCommands.CreateTeam(command));
+                            break;
+                        case "delete":
+                            await command.ModifyOriginalResponseAsync(properties => properties.Content = SlashCommands.DeleteTeam(command));
+                            break;
+                        case "change":
+                            switch(command.Data.Options.First().Options.First().Name)
+                            {
+                                case "leader":
+                                    await command.ModifyOriginalResponseAsync(properties => properties.Content = SlashCommands.ChangeLeader(command));
+                                    break;
+                            }
+                            break;
+                        case "player":
+                            switch(command.Data.Options.First().Options.First().Name)
+                            {
+                                case "add":
+                                    await command.ModifyOriginalResponseAsync(properties => properties.Content = SlashCommands.AddPlayer(command));
+                                    break;
+                                case "remove":
+                                    await command.ModifyOriginalResponseAsync(properties => properties.Content = SlashCommands.RemovePlayer(command));
+                                    break;
+                            }
+                            break;
+                    }
                     break;
                 case "match-game":
                     await command.ModifyOriginalResponseAsync(properties => properties.Content = SlashCommands.MatchGame(command));
@@ -249,6 +272,7 @@ public class DiscordConnection
                     await command.ModifyOriginalResponseAsync(properties => properties.Content = "Alle Befehle werden neu erstellt");
                     break;
                 default:
+                    await command.ModifyOriginalResponseAsync(properties => properties.Content = "Befehl wurde nicht gefunden, bitte bei @NekoFerris melden");
                     return;
             }
         }
