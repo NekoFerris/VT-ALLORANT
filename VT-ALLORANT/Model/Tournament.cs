@@ -7,16 +7,18 @@ using VT_ALLORANT.Controller;
 public class Tournament
 {
     // Properties
-    public int TournamentId { get; set; }  // Unique ID of the tournament
-    public string Name { get; set; } = "unset"; // Default value "unset
-    public ICollection<Team> Teams { get; set; } = []; // Default value new List<Team>()
-    public ICollection<Player> Moderators { get; set; } = []; // Default value new List<Team>()
-    public ICollection<Player> Observers { get; set; } = []; // Default value new List<Team>()
-    public ICollection<Game> Games { get; set; } = []; // Default value new List<Game>()
-    public bool OpenForRegistration { get; set; } = false; // Default value false
-    public int MaxTeamRank { get; set; } = 0; // Default value 0
-    public int CurrentStage { get; set; } = 0; // Default value 0
-    public int MaxTeams { get; internal set; }
+    public int TournamentId { get; set; }
+    public string Name { get; set; } = "unset";
+    public ICollection<Team> Teams { get; set; } = [];
+    public ICollection<Player> Moderators { get; set; } = [];
+    public ICollection<Player> Observers { get; set; } = [];
+    public ICollection<Game> Games { get; set; } = [];
+    public bool OpenForRegistration { get; set; } = false;
+    public int MaxTeamRank { get; set; } = 0;
+    public int CurrentStage { get; set; } = 0;
+    public int MaxTeams { get; set; }
+    public PlayerRanks MinRank { get; set; } = PlayerRanks.Unranked;
+    public PlayerRanks MaxRank { get; set; } = PlayerRanks.Radiant;
 
     // Constructor
     public Tournament()

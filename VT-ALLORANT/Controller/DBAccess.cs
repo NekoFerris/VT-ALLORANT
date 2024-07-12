@@ -19,7 +19,7 @@ namespace VT_ALLORANT.Controller
         public DbSet<TournamentTeam> TournamentTeams { get; set; }
         public DbSet<GameObserver> GameObservers { get; set; }
         public DbSet<Tournament> Tournaments { get; set; }
-
+        public DbSet<RankScore> RankScores { get; set; }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {

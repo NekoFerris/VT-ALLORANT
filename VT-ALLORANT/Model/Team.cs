@@ -20,7 +20,7 @@ public class Team
     public ICollection<Player> Players { get; set; } = [];
     public ICollection<Tournament> Tournaments { get; set; } = [];
     public int PlayerCount => Players.Count;
-    public int TeamRank => Players.Sum(p => (int)p.Rank);
+    public int TeamRank => Players.Sum(p => (int)p.RankedScore);
 
     public static void Create(string name, Player leader)
     {
@@ -65,14 +65,14 @@ public class Team
     public static Team LoadTeam(string name)
     {
         using DBAccess dBAccess = new();
-        Team t = dBAccess.Teams.Include(t => t.Leader).Include(t => t.Players).FirstOrDefault(t => t.Name == name) ?? throw new Exception("Team nicht gefunden");
+        Team t = dBAccess.Teams.Include(t => t.Leader).Include(t => t.Players).ThenInclude(p => p.ValorantUser).Include(t => t.Players).ThenInclude(p => p.DiscordUser).FirstOrDefault(t => t.Name == name) ?? throw new Exception("Team nicht gefunden");
         return t;
     }
 
     public static Team Load(Player leader)
     {
         using DBAccess dBAccess = new();
-        Team t = dBAccess.Teams.Include(t => t.Leader).Include(t => t.Players).FirstOrDefault(t => t.LeaderId == leader.PlayerId) ?? throw new Exception($"Team für Spieler {leader.Name} nicht gefunden");
+        Team t = dBAccess.Teams.Include(t => t.Leader).Include(t => t.Players).ThenInclude(p => p.ValorantUser).Include(t => t.Players).ThenInclude(p => p.DiscordUser).FirstOrDefault(t => t.LeaderId == leader.PlayerId) ?? throw new Exception($"Team für Spieler {leader.Name} nicht gefunden");
         return t;
     }
 
@@ -86,7 +86,7 @@ public class Team
     public static List<Team> GetAll()
     {
         using DBAccess dBAccess = new();
-        List<Team> teams = [.. dBAccess.Teams.Include(t => t.Leader).Include(t => t.Players)];
+        List<Team> teams = [.. dBAccess.Teams.Include(t => t.Leader).Include(t => t.Players).ThenInclude(p => p.ValorantUser).Include(t => t.Players).ThenInclude(p => p.DiscordUser)];
         return teams;
     }
 

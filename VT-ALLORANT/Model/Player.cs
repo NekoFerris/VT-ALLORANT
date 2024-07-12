@@ -7,34 +7,9 @@ using Microsoft.EntityFrameworkCore;
 
 namespace VT_ALLORANT.Model;
 
-public enum PlayerRankedScore
-{
-    Iron1 = 10,
-    Iron2 = 10,
-    Iron3 = 10,
-    Bronze1 = 15,
-    Bronze2 = 15,
-    Bronze3 = 15,
-    Silver1 = 20,
-    Silver2 = 20,
-    Silver3 = 20,
-    Gold1 = 25,
-    Gold2 = 25,
-    Gold3 = 25,
-    Platinum1 = 30,
-    Platinum2 = 30,
-    Platinum3 = 30,
-    Diamond1 = 40,
-    Diamond2 = 40,
-    Diamond3 = 40,
-    Immortal1 = 50,
-    Immortal2 = 50,
-    Immortal3 = 50,
-    Radiant = 60
-}
-
 public enum PlayerRanks
 {
+    Unranked = 0,
     Iron1 = 1,
     Iron2 = 2,
     Iron3 = 3,
@@ -53,10 +28,13 @@ public enum PlayerRanks
     Diamond1 = 16,
     Diamond2 = 17,
     Diamond3 = 18,
-    Immortal1 = 19,
-    Immortal2 = 20,
-    Immortal3 = 21,
-    Radiant = 22
+    Ascendant1 = 19,
+    Ascendant2 = 20,
+    Ascendant3 = 21,
+    Immortal1 = 22,
+    Immortal2 = 23,
+    Immortal3 = 24,
+    Radiant = 25
 }
 
 [Table("Players")]
@@ -67,7 +45,8 @@ public class Player
     [ForeignKey("PlayerId")]
     public int PlayerId { get; set; }
     public string Name { get; set; }
-    public PlayerRanks Rank { get; set; }
+    public PlayerRanks Rank { get; set; } = PlayerRanks.Unranked;
+    public int RankedScore => RankScore.GetRank((int)Rank).Score;
     public int DiscordUserId { get; set; }
     public DiscordUser DiscordUser { get; set; }
     public int ValorantUserId { get; set; }

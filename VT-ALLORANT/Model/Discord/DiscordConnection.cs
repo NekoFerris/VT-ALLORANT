@@ -67,11 +67,27 @@ public class DiscordConnection
             {
                 Config configFile = new();
                 SocketGuild guild = _client!.GetGuild(configFile.GuildId);
+                List<SlashCommandProperties> newGuildCommands = AvailabaleGuildCommands(guild);
+                IReadOnlyCollection<SocketApplicationCommand> oldGuildCommands = await guild.GetApplicationCommandsAsync();
+                Parallel.ForEach(newGuildCommands, async task => await AddGuildCommand(oldGuildCommands, task, guild));
+            }
+            catch (AggregateException ae)
+            {
+                foreach (var e in ae.InnerExceptions)
+                {
+                    Console.WriteLine(e.Message);
+                }
+            }
+            catch (Exception exception)
+            {
+                Console.WriteLine(exception);
+            }
+        });
+    }
 
-                IReadOnlyCollection<SocketApplicationCommand> guildCommands = await guild.GetApplicationCommandsAsync();
-
+    public List<SlashCommandProperties> AvailabaleGuildCommands(SocketGuild guild)
+    {
                 List<SlashCommandProperties> commands = [];
-
                 SlashCommandBuilder guildCommand = new SlashCommandBuilder()
                     .WithName("register")
                     .WithDescription("Spieler Registrieren")
@@ -130,7 +146,9 @@ public class DiscordConnection
                 guildCommand = new SlashCommandBuilder()
                     .WithName("create-tournament")
                     .WithDescription("Tritt einem Turnier bei")
-                    .AddOption("name", ApplicationCommandOptionType.String, "Name des Turniers", isRequired: true);
+                    .AddOption("name", ApplicationCommandOptionType.String, "Name des Turniers", isRequired: true)
+                    .WithDefaultPermission(false)
+                    .WithDefaultMemberPermissions(GuildPermission.ManageEvents);
                 commands.Add(guildCommand.Build());
 
                 guildCommand = new SlashCommandBuilder()
@@ -143,28 +161,28 @@ public class DiscordConnection
                     .WithDescription("Verlasse ein Turnier");
                 commands.Add(guildCommand.Build());
 
-                //guildCommand = new SlashCommandBuilder()
-                //    .WithName("send-friend-request")
-                //    .WithDescription("Freundschaftsanfrage senden")
-                //    .AddOption("name", ApplicationCommandOptionType.User, "Name des Spielers", isRequired: true);
-                //tasks.Add(guild.CreateApplicationCommandAsync(guildCommand.Build()));
+                guildCommand = new SlashCommandBuilder()
+                    .WithName("send-friend-request")
+                    .WithDescription("Freundschaftsanfrage senden")
+                    .AddOption("name", ApplicationCommandOptionType.User, "Name des Spielers", isRequired: true);
+                commands.Add(guildCommand.Build());
 
-                Parallel.ForEach(commands, async task => await AddGuildCommand(guildCommands, task, guild));
-
-
-            }
-            catch (AggregateException ae)
-            {
-                foreach (var e in ae.InnerExceptions)
-                {
-                    Console.WriteLine(e.Message);
-                }
-            }
-            catch (Exception exception)
-            {
-                Console.WriteLine(exception);
-            }
-        });
+                guildCommand = new SlashCommandBuilder()
+                    .WithName("recreate-commands")
+                    .WithDescription("Alle Bestehenden Commands neu erstellen")
+                    .WithDefaultPermission(false)
+                    .WithDefaultMemberPermissions(GuildPermission.Administrator);
+                commands.Add(guildCommand.Build());
+                return commands;
+    }
+     
+    private async Task RecreateCommands(SocketGuild guild)
+    {
+        IReadOnlyCollection<SocketApplicationCommand> oldGuildCommands = await guild.GetApplicationCommandsAsync();
+        IEnumerable<Task> deleteGuildCommandsTasks = oldGuildCommands.Select(command => command.DeleteAsync());
+        Task.WaitAll(deleteGuildCommandsTasks.ToArray());
+        List<SlashCommandProperties> newGuildCommands = AvailabaleGuildCommands(guild);
+        Parallel.ForEach(newGuildCommands, async task => await AddGuildCommand(oldGuildCommands, task, guild));
     }
 
     private async Task AddGuildCommand(IReadOnlyCollection<SocketApplicationCommand> ExistingSocketApplicationCommands, SlashCommandProperties socketSlashCommand, SocketGuild guild)
@@ -222,9 +240,14 @@ public class DiscordConnection
                 case "join-tournament":
                     await SlashCommands.JoinTournament(command);
                     break;
-                //case "send-friend-request":
-                //    await command.ModifyOriginalResponseAsync(properties => properties.Content = SlashCommands.SendFriendRequest(command));
-                //    break;
+                case "send-friend-request":
+                    await command.ModifyOriginalResponseAsync(properties => properties.Content = SlashCommands.SendFriendRequest(command));
+                    break;
+                case "recreate-commands":
+                    SocketGuild guild = _client!.GetGuild(command.GuildId!.Value);
+                    await RecreateCommands(guild);
+                    await command.ModifyOriginalResponseAsync(properties => properties.Content = "Alle Befehle werden neu erstellt");
+                    break;
                 default:
                     return;
             }
