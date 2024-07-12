@@ -8,10 +8,7 @@ public class DiscordConnection
 
     public async Task RunBotAsync()
     {
-        DiscordSocketConfig config = new DiscordSocketConfig()
-        {
-            GatewayIntents = GatewayIntents.AllUnprivileged
-        };
+        DiscordSocketConfig config = new();
         _client = new DiscordSocketClient(config);
         _client.Log += Log;
         _client.SlashCommandExecuted += SlashCommandHandler;
