@@ -20,7 +20,8 @@ namespace VT_ALLORANT.Controller
         public DbSet<GameObserver> GameObservers { get; set; }
         public DbSet<Tournament> Tournaments { get; set; }
         public DbSet<RankScore> RankScores { get; set; }
-
+        public DbSet<DiscordRole> DiscordRoles { get; set; }
+        
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
 #if DEBUG

@@ -11,14 +11,56 @@ using VT_ALLORANT.Controller;
 namespace VT_ALLORANT.Migrations
 {
     [DbContext(typeof(DBAccess))]
-    [Migration("20240703103413_Update2")]
-    partial class Update2
+    [Migration("20240715144832_Initial")]
+    partial class Initial
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
-            modelBuilder.HasAnnotation("ProductVersion", "8.0.4");
+            modelBuilder.HasAnnotation("ProductVersion", "8.0.7");
+
+            modelBuilder.Entity("DiscordRole", b =>
+                {
+                    b.Property<int>("RoleType")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<ulong>("RoleId")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("RoleType");
+
+                    b.ToTable("DiscordRoles");
+                });
+
+            modelBuilder.Entity("GameObserver", b =>
+                {
+                    b.Property<int>("ObserverId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("GameId")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("ObserverId", "GameId");
+
+                    b.HasIndex("GameId");
+
+                    b.ToTable("GameObserver", (string)null);
+                });
+
+            modelBuilder.Entity("RankScore", b =>
+                {
+                    b.Property<int>("RankId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("Score")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("RankId");
+
+                    b.ToTable("RankScores");
+                });
 
             modelBuilder.Entity("TeamPlayer", b =>
                 {
@@ -116,7 +158,7 @@ namespace VT_ALLORANT.Migrations
                         .IsRequired()
                         .HasColumnType("TEXT");
 
-                    b.Property<int>("RankedScore")
+                    b.Property<int>("Rank")
                         .HasColumnType("INTEGER");
 
                     b.Property<int>("ValorantUserId")
@@ -164,13 +206,31 @@ namespace VT_ALLORANT.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("INTEGER");
 
+                    b.Property<int>("CurrentStage")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("MaxRank")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("MaxTeamRank")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("MaxTeams")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("MinRank")
+                        .HasColumnType("INTEGER");
+
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasColumnType("TEXT");
 
+                    b.Property<bool>("OpenForRegistration")
+                        .HasColumnType("INTEGER");
+
                     b.HasKey("TournamentId");
 
-                    b.ToTable("Tournament");
+                    b.ToTable("Tournaments");
                 });
 
             modelBuilder.Entity("VT_ALLORANT.Model.TournamentModerator", b =>
@@ -239,6 +299,25 @@ namespace VT_ALLORANT.Migrations
                     b.HasKey("ValorantUserId");
 
                     b.ToTable("ValorantUser");
+                });
+
+            modelBuilder.Entity("GameObserver", b =>
+                {
+                    b.HasOne("VT_ALLORANT.Model.Game", "Game")
+                        .WithMany()
+                        .HasForeignKey("GameId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("VT_ALLORANT.Model.Player", "Observer")
+                        .WithMany()
+                        .HasForeignKey("ObserverId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Game");
+
+                    b.Navigation("Observer");
                 });
 
             modelBuilder.Entity("TeamPlayer", b =>

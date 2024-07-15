@@ -54,6 +54,7 @@ public class Player
     public ICollection<Team>? Teams { get; set; }
     public ICollection<Tournament>? Tournaments { get; set; }
     public ICollection<Game>? ObserverInGames { get; set; }
+    public static ulong DiscordRoleId { get; set; } = 1261987537740890143;
 
     public Player()
     {
@@ -69,6 +70,10 @@ public class Player
     public void Insert()
     {
         DBAccess dBAccess = new();
+        if(dBAccess.Players.Any(p => p.DiscordUser.DiscordId == DiscordUser.DiscordId))
+        {
+            throw new Exception($"{Name} bereits registriert");
+        }
         dBAccess.Add(this);
         dBAccess.SaveChanges();
     }
@@ -76,6 +81,10 @@ public class Player
     public void Delete()
     {
         DBAccess dBAccess = new();
+        if(!dBAccess.Players.Any(p => p.DiscordUser.DiscordId == DiscordUser.DiscordId))
+        {
+            throw new Exception($"{Name} ist nicht registriert");
+        }
         dBAccess.Remove(this);
         dBAccess.SaveChanges();
     }

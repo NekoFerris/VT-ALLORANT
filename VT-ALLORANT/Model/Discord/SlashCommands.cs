@@ -7,7 +7,7 @@ namespace VT_ALLORANT.Model.Discord
 {
     public static class SlashCommands
     {
-        public static string Register(SocketSlashCommand command)
+        public static string Register(SocketSlashCommand command, DiscordSocketClient client)
         {
             List<SocketSlashCommandDataOption> options = [.. command.Data.Options];
             ValorantUser valorantUser;
@@ -36,10 +36,16 @@ namespace VT_ALLORANT.Model.Discord
             string name = options[2]?.Value?.ToString()?.Trim() ?? throw new Exception("Kein Name angegeben");
             Player player = new(name.Trim(), discordUser, valorantUser);
             player.Insert();
+            SocketGuildUser user = client.GetGuild(command.GuildId!.Value).GetUser(command.User.Id);
+            //user.ModifyAsync(properties =>
+            //{
+            //    properties.Nickname = name;
+            //}).Wait();
+            user.AddRoleAsync(DiscordRole.GetDiscordRoleIdByType(RoleType.Player)).Wait();
             return $"Regestrierung für VTuber {name.Trim()} mit dem Valorant Account {valorantUser.NAME}#{valorantUser.TAG} erfolgreich abgeschlossen";
         }
 
-        public static string Unregister(SocketSlashCommand command)
+        public static string Unregister(SocketSlashCommand command, DiscordSocketClient client)
         {
             List<SocketSlashCommandDataOption> options = [.. command.Data.Options];
             Player player;
@@ -52,7 +58,13 @@ namespace VT_ALLORANT.Model.Discord
             {
                 return e.Message;
             }
-            return $"Regestrierung für VTuber {options[0].Value.ToString()?.Trim()} erfolgreich gelöscht";
+            SocketGuildUser user = client.GetGuild(command.GuildId!.Value).GetUser(command.User.Id);
+            //user.ModifyAsync(properties =>
+            //{
+            //    properties.Nickname = null;
+            //}).Wait();
+            user.RemoveRoleAsync(DiscordRole.GetDiscordRoleIdByType(RoleType.Player)).Wait();
+            return $"Regestrierung für VTuber {player.Name} erfolgreich gelöscht";
         }
 
         public static string CreateTeam(SocketSlashCommand command)
@@ -328,9 +340,23 @@ namespace VT_ALLORANT.Model.Discord
 
         }
 
-        internal static Optional<string> DeleteTournament(SocketSlashCommand command)
+        internal static string DeleteTournament(SocketSlashCommand command)
         {
             throw new NotImplementedException();
+        }
+
+        internal static string SetRole(SocketSlashCommand command, DiscordSocketClient client)
+        {
+            ReadOnlySpan<char> roleId = command.Data.Options.First().Options.First().Options.First().Value.ToString()?.Trim() ?? throw new Exception("Kein Rollenname angegeben");
+            RoleType roleType = (RoleType)Enum.Parse(typeof(RoleType), roleId);
+            SocketGuild guild = client.GetGuild(command.GuildId!.Value);
+            SocketRole role = client.GetGuild(command.GuildId!.Value).Roles.FirstOrDefault(r => r.Name == command.Data.Options.First().Options.First().Options.ToList()[1].Value.ToString()) ?? throw new Exception("Rolle nicht gefunden");
+            DBAccess dBAccess = new();
+            DiscordRole discordRole = dBAccess.DiscordRoles.FirstOrDefault(r => r.RoleType == roleType) ?? throw new Exception("Rolle nicht gefunden");
+            discordRole.RoleId = role.Id;
+            dBAccess.Update(discordRole);
+            dBAccess.SaveChanges();
+            return $"Rolle {Enum.GetName(typeof(RoleType), roleType)} zu {role!.Name} zugewiesen";
         }
     }
 }

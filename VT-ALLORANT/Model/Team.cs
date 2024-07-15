@@ -21,6 +21,7 @@ public class Team
     public ICollection<Tournament> Tournaments { get; set; } = [];
     public int PlayerCount => Players.Count;
     public int TeamRank => Players.Sum(p => (int)p.RankedScore);
+    public static ulong DiscordRoleId { get; set; }
 
     public static void Create(string name, Player leader)
     {

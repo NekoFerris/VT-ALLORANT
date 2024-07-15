@@ -17,6 +17,19 @@ namespace VT_ALLORANT.Migrations
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "8.0.7");
 
+            modelBuilder.Entity("DiscordRole", b =>
+                {
+                    b.Property<int>("RoleType")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<ulong>("RoleId")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("RoleType");
+
+                    b.ToTable("DiscordRoles");
+                });
+
             modelBuilder.Entity("GameObserver", b =>
                 {
                     b.Property<int>("ObserverId")
