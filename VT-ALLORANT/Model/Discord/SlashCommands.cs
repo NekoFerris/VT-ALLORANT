@@ -327,5 +327,10 @@ namespace VT_ALLORANT.Model.Discord
             }
 
         }
+
+        internal static Optional<string> DeleteTournament(SocketSlashCommand command)
+        {
+            throw new NotImplementedException();
+        }
     }
 }
