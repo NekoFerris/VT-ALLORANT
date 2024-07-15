@@ -160,12 +160,10 @@ public class DiscordConnection
             .AddOption("name", ApplicationCommandOptionType.User, "Name des Spielers", isRequired: false);
         commands.Add(guildCommand.Build());
 
-        using DBAccess dBAccess = new();
-        List<DiscordRole> roles = [.. dBAccess.DiscordRoles];
         List<ApplicationCommandOptionChoiceProperties> roleChoices = [];
-        foreach (DiscordRole role in roles)
+        foreach (long roleId in Enum.GetValues(typeof(RoleType)))
         {
-            roleChoices.Add(new ApplicationCommandOptionChoiceProperties() { Name = role.RoleType.ToString(), Value = role.RoleId.ToString() });
+            roleChoices.Add(new ApplicationCommandOptionChoiceProperties() { Name = Enum.GetName(typeof(RoleType), roleId)!.ToString(), Value = roleId.ToString() });
         }
         guildCommand = new SlashCommandBuilder()
             .WithName("setup")

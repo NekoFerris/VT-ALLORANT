@@ -14,7 +14,7 @@ namespace VT_ALLORANT.Migrations
                 name: "DiscordRoles",
                 columns: table => new
                 {
-                    RoleType = table.Column<int>(type: "INTEGER", nullable: false),
+                    RoleType = table.Column<long>(type: "INTEGER", nullable: false),
                     RoleId = table.Column<ulong>(type: "INTEGER", nullable: false)
                 },
                 constraints: table =>

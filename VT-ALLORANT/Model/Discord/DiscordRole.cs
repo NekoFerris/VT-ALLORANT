@@ -2,7 +2,7 @@ using System.ComponentModel.DataAnnotations;
 using VT_ALLORANT.Controller;
 using VT_ALLORANT.Model;
 
-public enum RoleType
+public enum RoleType : long
 {
     Admin = 1,
     Moderator = 2,

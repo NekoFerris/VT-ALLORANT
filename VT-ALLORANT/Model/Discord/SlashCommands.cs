@@ -348,7 +348,7 @@ namespace VT_ALLORANT.Model.Discord
         internal static string SetRole(SocketSlashCommand command, DiscordSocketClient client)
         {
             ReadOnlySpan<char> roleId = command.Data.Options.First().Options.First().Options.First().Value.ToString()?.Trim() ?? throw new Exception("Kein Rollenname angegeben");
-            RoleType roleType = (RoleType)Enum.Parse(typeof(RoleType), roleId);
+            RoleType roleType = (RoleType)Enum.Parse(typeof(RoleType), roleId.ToString());
             SocketGuild guild = client.GetGuild(command.GuildId!.Value);
             SocketRole role = client.GetGuild(command.GuildId!.Value).Roles.FirstOrDefault(r => r.Name == command.Data.Options.First().Options.First().Options.ToList()[1].Value.ToString()) ?? throw new Exception("Rolle nicht gefunden");
             DBAccess dBAccess = new();

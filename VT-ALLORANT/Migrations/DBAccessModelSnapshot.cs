@@ -19,7 +19,7 @@ namespace VT_ALLORANT.Migrations
 
             modelBuilder.Entity("DiscordRole", b =>
                 {
-                    b.Property<int>("RoleType")
+                    b.Property<long>("RoleType")
                         .HasColumnType("INTEGER");
 
                     b.Property<ulong>("RoleId")

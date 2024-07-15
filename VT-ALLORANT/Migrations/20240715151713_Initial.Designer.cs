@@ -11,7 +11,7 @@ using VT_ALLORANT.Controller;
 namespace VT_ALLORANT.Migrations
 {
     [DbContext(typeof(DBAccess))]
-    [Migration("20240715144832_Initial")]
+    [Migration("20240715151713_Initial")]
     partial class Initial
     {
         /// <inheritdoc />
@@ -22,7 +22,7 @@ namespace VT_ALLORANT.Migrations
 
             modelBuilder.Entity("DiscordRole", b =>
                 {
-                    b.Property<int>("RoleType")
+                    b.Property<long>("RoleType")
                         .HasColumnType("INTEGER");
 
                     b.Property<ulong>("RoleId")
