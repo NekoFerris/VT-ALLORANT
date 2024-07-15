@@ -70,7 +70,7 @@ public class Player
     public void Insert()
     {
         DBAccess dBAccess = new();
-        if(dBAccess.Players.Any(p => p.DiscordUser.DiscordId == DiscordUser.DiscordId))
+        if (dBAccess.Players.Any(p => p.DiscordUser.DiscordId == DiscordUser.DiscordId))
         {
             throw new Exception($"{Name} bereits registriert");
         }
@@ -81,11 +81,13 @@ public class Player
     public void Delete()
     {
         DBAccess dBAccess = new();
-        if(!dBAccess.Players.Any(p => p.DiscordUser.DiscordId == DiscordUser.DiscordId))
+        if (!dBAccess.Players.Any(p => p.DiscordUser.DiscordId == DiscordUser.DiscordId))
         {
             throw new Exception($"{Name} ist nicht registriert");
         }
         dBAccess.Remove(this);
+        dBAccess.Remove(DiscordUser);
+        dBAccess.Remove(ValorantUser);
         dBAccess.SaveChanges();
     }
 
