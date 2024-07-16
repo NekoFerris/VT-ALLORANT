@@ -78,12 +78,7 @@ namespace VT_ALLORANT.Model.Discord
             Team team;
             try
             {
-                Player leader = Player.Load(player => player.DiscordUser.DiscordId == command.User.Id);
-                team = Team.Load(Player.Load(player => player.DiscordUser.DiscordId == command.User.Id));
-                if (leader.PlayerId != team.Leader.PlayerId)
-                {
-                    throw new Exception($"Du bist nicht der Anführer des Teams {team.Name}");
-                }
+                team = Team.Load(team => team.Leader.PlayerId == Player.Load(player => player.DiscordUser.DiscordId == command.User.Id).PlayerId);
                 team.Delete();
             }
             catch (Exception e)
@@ -99,12 +94,7 @@ namespace VT_ALLORANT.Model.Discord
             Player playerToAdd;
             try
             {
-                Player leader = Player.Load(player => player.DiscordUser.DiscordId == command.User.Id);
-                team = Team.Load(leader);
-                if (leader.PlayerId != team.Leader.PlayerId)
-                {
-                    throw new Exception($"Du bist nicht der Anführer des Teams {team.Name}");
-                }
+                team = Team.Load(team => team.Leader.PlayerId == Player.Load(player => player.DiscordUser.DiscordId == command.User.Id).PlayerId);
                 if (team.Players.Count >= team.MaxPlayers)
                 {
                     throw new Exception($"Das Team {team.Name} ist bereits voll");
@@ -129,12 +119,7 @@ namespace VT_ALLORANT.Model.Discord
             Player playerToRemove;
             try
             {
-                Player leader = Player.Load(player => player.DiscordUser.DiscordId == command.User.Id);
-                team = Team.Load(leader);
-                if (leader.PlayerId != team.Leader.PlayerId)
-                {
-                    throw new Exception("Du bist nicht der Anführer dieses Teams");
-                }
+                team = Team.Load(team => team.Leader.PlayerId == Player.Load(player => player.DiscordUser.DiscordId == command.User.Id).PlayerId);
                 playerToRemove = Player.Load(player => player.DiscordUser.DiscordId == GetUserId(client, command.Data.Options.First().Options.First().Options.First().Value.ToString()?.Trim() ?? throw new Exception("Kein Spieler angegeben"), command.GuildId!.Value));
                 team.RemovePlayer(playerToRemove);
             }
@@ -151,12 +136,7 @@ namespace VT_ALLORANT.Model.Discord
             Player newLeader;
             try
             {
-                Player leader = Player.Load(player => player.DiscordUser.DiscordId == command.User.Id);
-                team = Team.Load(leader);
-                if (leader.PlayerId != team.Leader.PlayerId)
-                {
-                    throw new Exception("Du bist nicht der Anführer dieses Teams");
-                }
+                team = Team.Load(team => team.Leader.PlayerId == Player.Load(player => player.DiscordUser.DiscordId == command.User.Id).PlayerId);
                 newLeader = Player.Load(player => player.DiscordUser.DiscordId == GetUserId(client, command.Data.Options.First().Options.First().Options.First().Value.ToString()?.Trim() ?? throw new Exception("Kein Spieler angegeben"), command.GuildId!.Value));
                 if (newLeader.PlayerId == team.Leader.PlayerId)
                 {
@@ -329,8 +309,8 @@ namespace VT_ALLORANT.Model.Discord
         {
             try
             {
-                Tournament.Create(command.Data.Options.ToList()[0].Value.ToString()?.Trim() ?? throw new Exception("Kein Turniername angegeben"));
-                return $"Turnier {command.Data.Options.ToList()[0].Value.ToString()?.Trim()} erstellt";
+                Tournament.Create(command.Data.Options.First().Options.First().Value.ToString()?.Trim() ?? throw new Exception("Kein Turniername angegeben"));
+                return $"Turnier {command.Data.Options.First().Options.First().Value.ToString()?.Trim()} erstellt";
             }
             catch (Exception e)
             {

@@ -25,7 +25,7 @@ public class SelectMenuCommands()
     public static async Task JoinTournamentSelectMenu(SocketMessageComponent component)
     {
         string[] data = component.Data.CustomId.Split(":");
-        Team joiningTeam = Team.Load(Player.Load(player => player.PlayerId == Int32.Parse(data[1])));
+        Team joiningTeam = Team.Load(team => team.TeamId == Int32.Parse(data[1]));
         if(joiningTeam.Leader.DiscordUser.DiscordId != component.User.Id)
         {
             await component.DeferAsync();
@@ -48,7 +48,7 @@ public class SelectMenuCommands()
     public static async Task LeaveTournamentSelectMenu(SocketMessageComponent component)
     {
         string[] data = component.Data.CustomId.Split(":");
-        Team joiningTeam = Team.Load(Player.Load(player => player.PlayerId == Int32.Parse(data[1])));
+        Team joiningTeam = Team.Load(team => team.TeamId == Int32.Parse(data[1]));
         if(joiningTeam.Leader.DiscordUser.DiscordId != component.User.Id)
         {
             await component.DeferAsync();

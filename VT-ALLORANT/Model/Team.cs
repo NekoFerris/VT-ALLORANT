@@ -3,6 +3,7 @@ using System.ComponentModel.DataAnnotations;
 using VT_ALLORANT.Controller;
 using System.Reactive.Linq;
 using Microsoft.EntityFrameworkCore;
+using System.Linq;
 
 namespace VT_ALLORANT.Model;
 
@@ -75,7 +76,7 @@ public class Team
         return t;
     }
 
-    public static Team Load(Player leader)
+    public static Team Load(Func<Team, bool> predicate)
     {
         using DBAccess dBAccess = new();
         Team t = dBAccess.Teams .Include(t => t.Leader)
@@ -83,7 +84,7 @@ public class Team
                                     .ThenInclude(p => p.ValorantUser)
                                 .Include(t => t.Players)
                                     .ThenInclude(p => p.DiscordUser)
-                                .FirstOrDefault(t => t.LeaderId == leader.PlayerId) ?? throw new Exception($"Team für Spieler {leader.Name} nicht gefunden");
+                                .FirstOrDefault(predicate);
         return t;
     }
 
@@ -108,7 +109,7 @@ public class Team
     public void SetLeader(Player player)
     {
         using DBAccess dBAccess = new();
-        Player existingPlayer = Players.FirstOrDefault(p => p.PlayerId == player.PlayerId) ?? throw new Exception("Spieler nicht im Team");
+        Player? existingPlayer = Players.FirstOrDefault(p => p.PlayerId == player.PlayerId);
         Leader = existingPlayer;
         LeaderId = existingPlayer.PlayerId;
         dBAccess.Teams.Find(this.TeamId)!.LeaderId = LeaderId;

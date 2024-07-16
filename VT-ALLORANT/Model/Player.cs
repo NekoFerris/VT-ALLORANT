@@ -91,12 +91,12 @@ public class Player
         dBAccess.SaveChanges();
     }
 
-    public static Player Load(Func<Player, bool> predicate)
+    public static Player? Load(Func<Player, bool> predicate)
     {
         DBAccess dBAccess = new();
-        Player player = dBAccess.Players.Include(d => d.DiscordUser)
-                                        .Include(v => v.ValorantUser)
-                                        .FirstOrDefault(predicate) ?? throw new Exception("Player not found");
+        Player? player = dBAccess.Players.Include(d => d.DiscordUser)
+                                         .Include(v => v.ValorantUser)
+                                         .FirstOrDefault(predicate);
         return player;
     }
 
