@@ -91,21 +91,12 @@ public class Player
         dBAccess.SaveChanges();
     }
 
-    public static Player Load(int? id)
+    public static Player Load(Func<Player, bool> predicate)
     {
         DBAccess dBAccess = new();
         Player player = dBAccess.Players.Include(d => d.DiscordUser)
                                         .Include(v => v.ValorantUser)
-                                        .FirstOrDefault(player => player.PlayerId == id) ?? throw new Exception("Player not found");
-        return player;
-    }
-
-    internal static Player Load(ulong id)
-    {
-        DBAccess dBAccess = new();
-        Player player = dBAccess.Players.Include(d => d.DiscordUser)
-                                        .Include(v => v.ValorantUser)
-                                        .FirstOrDefault(player => player.DiscordUser.DiscordId == id) ?? throw new Exception("Player not found");
+                                        .FirstOrDefault(predicate) ?? throw new Exception("Player not found");
         return player;
     }
 
@@ -113,15 +104,6 @@ public class Player
     {
         DBAccess dBAccess = new();
         return [.. dBAccess.Players.Include(d => d.DiscordUser).Include(v => v.ValorantUser)];
-    }
-
-    public static Player GetPlayerByDiscordUserName(string name)
-    {
-        DBAccess dBAccess = new();
-        Player player = dBAccess.Players.Include(d => d.DiscordUser)
-                                        .Include(v => v.ValorantUser)
-                                        .FirstOrDefault(player => player.DiscordUser.Username == name) ?? throw new Exception("Player not found");
-        return player;
     }
 
     internal static List<Player> GetPlayersForTeam(Team t)

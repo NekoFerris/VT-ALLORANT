@@ -11,7 +11,6 @@ public class DiscordUser
     [Key]
     [ForeignKey("DiscordUserId")]
     public int DiscordUserId { get; set; }
-    public string Username { get; set; } = "unset";
     public ulong DiscordId { get; set; }
 
     // Methods

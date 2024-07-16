@@ -11,9 +11,9 @@ namespace VT_ALLORANT.Model.Valorant
     public static class ValorantConnection
     {
         public static RiotApi Api { get; set; }
-        public static string password { get; set; }
-        public static string accessToken { get; set; }
-        public static string idToken { get; set; }
+        public static string? password { get; set; }
+        public static string? accessToken { get; set; }
+        public static string? idToken { get; set; }
         public static int port { get; set; } = 0;
 
         public static HttpClient httpClient = new();

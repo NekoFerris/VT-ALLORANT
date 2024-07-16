@@ -15,7 +15,7 @@ public class DiscordConnection
         {
             GatewayIntents = GatewayIntents.All
         };
-        _client = new DiscordSocketClient(config);
+        _client = new DiscordSocketClient(config)!;
         _client.Log += Log;
         _client.SlashCommandExecuted += SlashCommandHandler;
         _client.SelectMenuExecuted += SelectMenuHandler;
@@ -225,10 +225,10 @@ public class DiscordConnection
         switch (command.Data.Name)
         {
             case "register":
-                await command.ModifyOriginalResponseAsync(properties => properties.Content = SlashCommands.Register(command, _client));
+                await command.ModifyOriginalResponseAsync(properties => properties.Content = SlashCommands.Register(command, _client!));
                 break;
             case "unregister":
-                await command.ModifyOriginalResponseAsync(properties => properties.Content = SlashCommands.Unregister(command, _client));
+                await command.ModifyOriginalResponseAsync(properties => properties.Content = SlashCommands.Unregister(command, _client!));
                 break;
             case "team":
                 switch (command.Data.Options.First().Name)
@@ -243,7 +243,7 @@ public class DiscordConnection
                         switch (command.Data.Options.First().Options.First().Name)
                         {
                             case "leader":
-                                await command.ModifyOriginalResponseAsync(properties => properties.Content = SlashCommands.ChangeLeader(command));
+                                await command.ModifyOriginalResponseAsync(properties => properties.Content = SlashCommands.ChangeLeader(command, _client!));
                                 break;
                         }
                         break;
@@ -251,10 +251,10 @@ public class DiscordConnection
                         switch (command.Data.Options.First().Options.First().Name)
                         {
                             case "add":
-                                await command.ModifyOriginalResponseAsync(properties => properties.Content = SlashCommands.AddPlayer(command));
+                                await command.ModifyOriginalResponseAsync(properties => properties.Content = SlashCommands.AddPlayer(command, _client!));
                                 break;
                             case "remove":
-                                await command.ModifyOriginalResponseAsync(properties => properties.Content = SlashCommands.RemovePlayer(command));
+                                await command.ModifyOriginalResponseAsync(properties => properties.Content = SlashCommands.RemovePlayer(command, _client!));
                                 break;
                         }
                         break;
@@ -264,7 +264,7 @@ public class DiscordConnection
                 await command.ModifyOriginalResponseAsync(properties => properties.Content = SlashCommands.MatchGame(command));
                 break;
             case "update-ranking":
-                await SlashCommands.UpdateRanking(command);
+                await SlashCommands.UpdateRanking(command, _client!);
                 break;
             case "tournament":
                 switch (command.Data.Options.First().Name)
@@ -290,7 +290,7 @@ public class DiscordConnection
                         switch (command.Data.Options.First().Options.First().Name)
                         {
                             case "role":
-                                await command.ModifyOriginalResponseAsync(properties => properties.Content = SlashCommands.SetRole(command, _client));
+                                await command.ModifyOriginalResponseAsync(properties => properties.Content = SlashCommands.SetRole(command, _client!));
                                 break;
                         }
                         break;

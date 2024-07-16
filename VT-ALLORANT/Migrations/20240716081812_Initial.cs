@@ -28,7 +28,6 @@ namespace VT_ALLORANT.Migrations
                 {
                     DiscordUserId = table.Column<int>(type: "INTEGER", nullable: false)
                         .Annotation("Sqlite:Autoincrement", true),
-                    Username = table.Column<string>(type: "TEXT", nullable: false),
                     DiscordId = table.Column<ulong>(type: "INTEGER", nullable: false)
                 },
                 constraints: table =>

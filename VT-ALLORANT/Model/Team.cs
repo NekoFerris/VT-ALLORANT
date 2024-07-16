@@ -58,7 +58,7 @@ public class Team
     {
         using DBAccess dBAccess = new();
         Team t = dBAccess.Teams.Find(id) ?? throw new Exception("Team nicht gefunden");
-        t.Leader = Player.Load(t.LeaderId);
+        t.Leader = Player.Load(player => player.PlayerId == t.LeaderId);
         t.Players = Player.GetPlayersForTeam(t);
         return t;
     }

@@ -11,7 +11,7 @@ using VT_ALLORANT.Controller;
 namespace VT_ALLORANT.Migrations
 {
     [DbContext(typeof(DBAccess))]
-    [Migration("20240715151713_Initial")]
+    [Migration("20240716081812_Initial")]
     partial class Initial
     {
         /// <inheritdoc />
@@ -85,10 +85,6 @@ namespace VT_ALLORANT.Migrations
 
                     b.Property<ulong>("DiscordId")
                         .HasColumnType("INTEGER");
-
-                    b.Property<string>("Username")
-                        .IsRequired()
-                        .HasColumnType("TEXT");
 
                     b.HasKey("DiscordUserId");
 

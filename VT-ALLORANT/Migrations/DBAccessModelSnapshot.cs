@@ -83,10 +83,6 @@ namespace VT_ALLORANT.Migrations
                     b.Property<ulong>("DiscordId")
                         .HasColumnType("INTEGER");
 
-                    b.Property<string>("Username")
-                        .IsRequired()
-                        .HasColumnType("TEXT");
-
                     b.HasKey("DiscordUserId");
 
                     b.ToTable("DiscordUser");
