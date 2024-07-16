@@ -7,7 +7,7 @@ public class SelectMenuCommands()
     public static async Task RankSelectMenu(SocketMessageComponent component)
     {
         string[] data = component.Data.CustomId.Split(":");
-        Player player = Player.Load(player => player.PlayerId == Int32.Parse(data[1]));
+        Player player = Player.Load(player => player.PlayerId == Int32.Parse(data[1])) ?? throw new Exception("Spieler nicht gefunden");
         if(player.DiscordUser.DiscordId != component.User.Id)
         {
             await component.DeferAsync();
@@ -25,7 +25,7 @@ public class SelectMenuCommands()
     public static async Task JoinTournamentSelectMenu(SocketMessageComponent component)
     {
         string[] data = component.Data.CustomId.Split(":");
-        Team joiningTeam = Team.Load(team => team.TeamId == Int32.Parse(data[1]));
+        Team joiningTeam = Team.Load(team => team.TeamId == Int32.Parse(data[1])) ?? throw new Exception("Team nicht gefunden");
         if(joiningTeam.Leader.DiscordUser.DiscordId != component.User.Id)
         {
             await component.DeferAsync();
@@ -48,7 +48,7 @@ public class SelectMenuCommands()
     public static async Task LeaveTournamentSelectMenu(SocketMessageComponent component)
     {
         string[] data = component.Data.CustomId.Split(":");
-        Team joiningTeam = Team.Load(team => team.TeamId == Int32.Parse(data[1]));
+        Team joiningTeam = Team.Load(team => team.TeamId == Int32.Parse(data[1])) ?? throw new Exception("Team nicht gefunden");
         if(joiningTeam.Leader.DiscordUser.DiscordId != component.User.Id)
         {
             await component.DeferAsync();

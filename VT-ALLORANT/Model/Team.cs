@@ -51,35 +51,35 @@ public class Team
     public void RemovePlayer(Player player)
     {
         using DBAccess dBAccess = new();
-        dBAccess.TeamPlayers.Remove(dBAccess.TeamPlayers.Find(this.TeamId, player.PlayerId) ?? throw new Exception($"Spieler {player.Name} nicht im Team {this.Name} gefunden"));
+        dBAccess.TeamPlayers.Remove(dBAccess.TeamPlayers.Find(this.TeamId, player.PlayerId)!);
         dBAccess.SaveChanges();
     }
 
-    public static Team LoadTeam(int id)
+    public static Team? LoadTeam(int id)
     {
         using DBAccess dBAccess = new();
-        Team t = dBAccess.Teams.Find(id) ?? throw new Exception("Team nicht gefunden");
-        t.Leader = Player.Load(player => player.PlayerId == t.LeaderId);
+        Team? t = dBAccess.Teams.Find(id)!;
+        t.Leader = Player.Load(player => player.PlayerId == t.LeaderId)!;
         t.Players = Player.GetPlayersForTeam(t);
         return t;
     }
 
-    public static Team LoadTeam(string name)
+    public static Team? LoadTeam(string name)
     {
         using DBAccess dBAccess = new();
-        Team t = dBAccess.Teams .Include(t => t.Leader)
+        Team? t = dBAccess.Teams .Include(t => t.Leader)
                                 .Include(t => t.Players)
                                     .ThenInclude(p => p.ValorantUser)
                                 .Include(t => t.Players)
                                     .ThenInclude(p => p.DiscordUser)
-                                .FirstOrDefault(t => t.Name == name) ?? throw new Exception("Team nicht gefunden");
+                                .FirstOrDefault(t => t.Name == name);
         return t;
     }
 
-    public static Team Load(Func<Team, bool> predicate)
+    public static Team? Load(Func<Team, bool> predicate)
     {
         using DBAccess dBAccess = new();
-        Team t = dBAccess.Teams .Include(t => t.Leader)
+        Team? t = dBAccess.Teams .Include(t => t.Leader)
                                 .Include(t => t.Players)
                                     .ThenInclude(p => p.ValorantUser)
                                 .Include(t => t.Players)
@@ -110,8 +110,8 @@ public class Team
     {
         using DBAccess dBAccess = new();
         Player? existingPlayer = Players.FirstOrDefault(p => p.PlayerId == player.PlayerId);
-        Leader = existingPlayer;
-        LeaderId = existingPlayer.PlayerId;
+        Leader = existingPlayer!;
+        LeaderId = existingPlayer!.PlayerId;
         dBAccess.Teams.Find(this.TeamId)!.LeaderId = LeaderId;
         dBAccess.SaveChanges();
     }

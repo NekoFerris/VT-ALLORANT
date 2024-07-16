@@ -65,7 +65,7 @@ public class Tournament
     public void RemoveModerator(Player moderator)
     {
         using DBAccess dBAccess = new();
-        dBAccess.TournamentModerators.Remove(dBAccess.TournamentModerators.Find(this.TournamentId, moderator.PlayerId) ?? throw new Exception($"Spieler {moderator.Name} nicht als Moderator im Turnier {this.Name} gefunden"));
+        dBAccess.TournamentModerators.Remove(dBAccess.TournamentModerators.Find(this.TournamentId, moderator.PlayerId)!);
         dBAccess.SaveChanges();
     }
 
@@ -83,7 +83,7 @@ public class Tournament
     public void RemoveObserver(Player player)
     {
         DBAccess dBAccess = new();
-        dBAccess.TournamentObservers.Remove(dBAccess.TournamentObservers.Find(this.TournamentId, player.PlayerId) ?? throw new Exception($"Spieler {player.Name} nicht als Beobachter im Turnier {this.Name} gefunden"));
+        dBAccess.TournamentObservers.Remove(dBAccess.TournamentObservers.Find(this.TournamentId, player.PlayerId)!);
         dBAccess.SaveChanges();
     }
 

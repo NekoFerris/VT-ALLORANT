@@ -44,7 +44,7 @@ public class Player
     [Key]
     [ForeignKey("PlayerId")]
     public int PlayerId { get; set; }
-    public string Name { get; set; }
+    public string? Name { get; set; }
     public PlayerRanks Rank { get; set; } = PlayerRanks.Unranked;
     public int RankedScore => RankScore.GetRank((int)Rank).Score;
     public int DiscordUserId { get; set; }
@@ -70,7 +70,7 @@ public class Player
     public void Insert()
     {
         DBAccess dBAccess = new();
-        if (dBAccess.Players.Any(p => p.DiscordUser.DiscordId == DiscordUser.DiscordId))
+        if (dBAccess.Players.Any(p => p.DiscordUser!.DiscordId == DiscordUser!.DiscordId))
         {
             throw new Exception($"{Name} bereits registriert");
         }
@@ -81,7 +81,7 @@ public class Player
     public void Delete()
     {
         DBAccess dBAccess = new();
-        if (!dBAccess.Players.Any(p => p.DiscordUser.DiscordId == DiscordUser.DiscordId))
+        if (!dBAccess.Players.Any(p => p.DiscordUser!.DiscordId == DiscordUser!.DiscordId))
         {
             throw new Exception($"{Name} ist nicht registriert");
         }

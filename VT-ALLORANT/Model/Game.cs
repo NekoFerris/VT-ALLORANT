@@ -70,7 +70,7 @@ public class Game
     public void RemoveObserver(Player observer)
     {
         DBAccess dBAccess = new();
-        dBAccess.GameObservers.Remove(dBAccess.GameObservers.Find(this.GameId, observer.PlayerId) ?? throw new Exception($"Spieler {observer.Name} nicht im Match {this.MatchId} gefunden"));
+        dBAccess.GameObservers.Remove(dBAccess.GameObservers.Find(this.GameId, observer.PlayerId)!);
         dBAccess.SaveChanges();
     }
 
