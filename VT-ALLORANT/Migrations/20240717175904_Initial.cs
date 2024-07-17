@@ -73,9 +73,7 @@ namespace VT_ALLORANT.Migrations
                 {
                     ValorantUserId = table.Column<int>(type: "INTEGER", nullable: false)
                         .Annotation("Sqlite:Autoincrement", true),
-                    PUUID = table.Column<string>(type: "TEXT", nullable: false),
-                    NAME = table.Column<string>(type: "TEXT", nullable: false),
-                    TAG = table.Column<string>(type: "TEXT", nullable: false)
+                    PUUID = table.Column<string>(type: "TEXT", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -88,10 +86,11 @@ namespace VT_ALLORANT.Migrations
                 {
                     PlayerId = table.Column<int>(type: "INTEGER", nullable: false)
                         .Annotation("Sqlite:Autoincrement", true),
-                    Name = table.Column<string>(type: "TEXT", nullable: false),
+                    Name = table.Column<string>(type: "TEXT", nullable: true),
                     Rank = table.Column<int>(type: "INTEGER", nullable: false),
                     DiscordUserId = table.Column<int>(type: "INTEGER", nullable: false),
-                    ValorantUserId = table.Column<int>(type: "INTEGER", nullable: false)
+                    ValorantUserId = table.Column<int>(type: "INTEGER", nullable: false),
+                    CanChangeRank = table.Column<bool>(type: "INTEGER", nullable: false)
                 },
                 constraints: table =>
                 {

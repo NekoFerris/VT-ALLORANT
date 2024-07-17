@@ -12,14 +12,18 @@ public class ValorantUser
     [ForeignKey("ValorantUserId")]
     public int ValorantUserId { get; set; }
     public string PUUID { get; set; } = "unset";
-    public string NAME { get; set; } = "unset";
-    public string TAG { get; set; } = "unset";
 
     // Methods
     public void SendMessage(string message)
     {
+
+    }
+
+    public void Update(string message)
+    {
         DBAccess dBAccess = new();
         dBAccess.Update(this);
+        dBAccess.SaveChanges();
     }
 
     public void InsertUser()

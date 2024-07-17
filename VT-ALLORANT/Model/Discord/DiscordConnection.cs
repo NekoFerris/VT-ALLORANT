@@ -90,16 +90,58 @@ public class DiscordConnection
     {
         List<SlashCommandProperties> commands = [];
         SlashCommandBuilder guildCommand = new SlashCommandBuilder()
-            .WithName("register")
-            .WithDescription("Spieler Registrieren")
-            .AddOption("name", ApplicationCommandOptionType.String, "Name des Valorant Accounts", isRequired: true)
-            .AddOption("tag", ApplicationCommandOptionType.String, "Tag des Valorant Accounts", isRequired: true)
-            .AddOption("vtname", ApplicationCommandOptionType.String, "VTuber Name", isRequired: true);
+            .WithName("player")
+            .WithDescription("Spieler Verwaltung")
+            .AddOption(new SlashCommandOptionBuilder()
+                .WithType(ApplicationCommandOptionType.SubCommand)
+                .WithName("register")
+                .WithDescription("Spieler Registrieren")
+                .AddOption("name", ApplicationCommandOptionType.String, "Name des Valorant Accounts", isRequired: true)
+                .AddOption("tag", ApplicationCommandOptionType.String, "Tag des Valorant Accounts", isRequired: true)
+                .AddOption("vtname", ApplicationCommandOptionType.String, "VTuber Name", isRequired: true)
+            ).AddOption(new SlashCommandOptionBuilder()
+                .WithType(ApplicationCommandOptionType.SubCommand)
+                .WithName("unregister")
+                .WithDescription("Registrierung aufheben")
+            ).AddOption(new SlashCommandOptionBuilder()
+                .WithType(ApplicationCommandOptionType.SubCommandGroup)
+                .WithName("set")
+                .WithDescription("Einstellungen ändern")
+                .AddOption(new SlashCommandOptionBuilder()
+                    .WithType(ApplicationCommandOptionType.SubCommand)
+                    .WithName("name")
+                    .WithDescription("Spieler hinzufügen")
+                    .AddOption("name", ApplicationCommandOptionType.User, "Neuer Name", isRequired: true)
+                )
+                .AddOption(new SlashCommandOptionBuilder()
+                    .WithType(ApplicationCommandOptionType.SubCommand)
+                    .WithName("rank")
+                    .WithDescription("Rang ändern")
+                )
+            );
         commands.Add(guildCommand.Build());
 
         guildCommand = new SlashCommandBuilder()
-            .WithName("unregister")
-            .WithDescription("Registrierung aufheben");
+            .WithName("game")
+            .WithDescription("Spiel Verwaltung")
+            .AddOption(new SlashCommandOptionBuilder()
+                .WithType(ApplicationCommandOptionType.SubCommand)
+                .WithName("create")
+                .WithDescription("Spiel erstellen")
+                .AddOption("team1", ApplicationCommandOptionType.String, "Name des ersten Teams", isRequired: true)
+                .AddOption("team2", ApplicationCommandOptionType.String, "Name des zweiten Teams", isRequired: true)
+                .AddOption("tournament", ApplicationCommandOptionType.Integer, "Id des Tuniers", isRequired: true)
+            ).AddOption(new SlashCommandOptionBuilder()
+                .WithType(ApplicationCommandOptionType.SubCommand)
+                .WithName("delete")
+                .WithDescription("Spiel löschen")
+                .AddOption("id", ApplicationCommandOptionType.Integer, "Id des Spiels", isRequired: true)
+            ).AddOption(new SlashCommandOptionBuilder()
+                .WithType(ApplicationCommandOptionType.SubCommand)
+                .WithName("list")
+                .WithDescription("Liste aller Spiele")
+                .AddOption("tournament", ApplicationCommandOptionType.Integer, "Id des Tuniers", isRequired: true)
+            );
         commands.Add(guildCommand.Build());
 
         guildCommand = new SlashCommandBuilder()
@@ -115,6 +157,10 @@ public class DiscordConnection
                 .WithName("delete")
                 .WithDescription("Team auflösen")
             ).AddOption(new SlashCommandOptionBuilder()
+                .WithType(ApplicationCommandOptionType.SubCommand)
+                .WithName("list")
+                .WithDescription("Liste aller Teams")
+            ).AddOption(new SlashCommandOptionBuilder()
                 .WithType(ApplicationCommandOptionType.SubCommandGroup)
                 .WithName("set")
                 .WithDescription("Einstellungen ändern")
@@ -128,6 +174,11 @@ public class DiscordConnection
                     .WithName("rank")
                     .WithDescription("Rang auswählen")
                 )
+            ).AddOption(new SlashCommandOptionBuilder()
+                .WithType(ApplicationCommandOptionType.SubCommand)
+                .WithName("show")
+                .WithDescription("Team anzeigen")
+                .AddOption("id", ApplicationCommandOptionType.Integer, "Id des Teams", isRequired: true)
             ).AddOption(new SlashCommandOptionBuilder()
                 .WithType(ApplicationCommandOptionType.SubCommandGroup)
                 .WithName("player")
@@ -145,19 +196,6 @@ public class DiscordConnection
                     .AddOption("name", ApplicationCommandOptionType.User, "Zu entferndender Spieler", isRequired: true)
                 )
             );
-        commands.Add(guildCommand.Build());
-
-        guildCommand = new SlashCommandBuilder()
-            .WithName("match-game")
-            .WithDescription("Erstellt ein Spiel")
-            .AddOption("team1", ApplicationCommandOptionType.String, "Name des ersten Teams", isRequired: true)
-            .AddOption("team2", ApplicationCommandOptionType.String, "Name des zweiten Teams", isRequired: true);
-        commands.Add(guildCommand.Build());
-
-        guildCommand = new SlashCommandBuilder()
-            .WithName("update-ranking")
-            .WithDescription("Ändere den Rang eines Spielers")
-            .AddOption("name", ApplicationCommandOptionType.User, "Name des Spielers", isRequired: false);
         commands.Add(guildCommand.Build());
 
         List<ApplicationCommandOptionChoiceProperties> roleChoices = [];
@@ -207,6 +245,10 @@ public class DiscordConnection
                 .WithType(ApplicationCommandOptionType.SubCommand)
                 .WithName("leave")
                 .WithDescription("Turnier verlassen")
+            ).AddOption(new SlashCommandOptionBuilder()
+                .WithType(ApplicationCommandOptionType.SubCommand)
+                .WithName("list")
+                .WithDescription("Liste aller Turniere")
             );
         commands.Add(guildCommand.Build());
 
@@ -224,12 +266,6 @@ public class DiscordConnection
         await command.DeferAsync();
         switch (command.Data.Name)
         {
-            case "register":
-                await command.ModifyOriginalResponseAsync(properties => properties.Content = SlashCommands.Register(command, _client!));
-                break;
-            case "unregister":
-                await command.ModifyOriginalResponseAsync(properties => properties.Content = SlashCommands.Unregister(command, _client!));
-                break;
             case "team":
                 switch (command.Data.Options.First().Name)
                 {
@@ -238,6 +274,12 @@ public class DiscordConnection
                         break;
                     case "delete":
                         await command.ModifyOriginalResponseAsync(properties => properties.Content = SlashCommands.DeleteTeam(command));
+                        break;
+                    case "list":
+                        await command.ModifyOriginalResponseAsync(properties => properties.Content = SlashCommands.ListTeams(command));
+                        break;
+                    case "show":
+                        await command.ModifyOriginalResponseAsync(properties => properties.Content = SlashCommands.ListTeamMembers(command));
                         break;
                     case "set":
                         switch (command.Data.Options.First().Options.First().Name)
@@ -260,11 +302,30 @@ public class DiscordConnection
                         break;
                 }
                 break;
-            case "match-game":
-                await command.ModifyOriginalResponseAsync(properties => properties.Content = SlashCommands.MatchGame(command));
-                break;
-            case "update-ranking":
-                await SlashCommands.UpdateRanking(command, _client!);
+            case "player":
+                switch (command.Data.Options.First().Name)
+                {
+                    case "register":
+                        await command.ModifyOriginalResponseAsync(properties => properties.Content = SlashCommands.Register(command, _client!));
+                        break;
+                    case "unregister":
+                        await command.ModifyOriginalResponseAsync(properties => properties.Content = SlashCommands.Unregister(command, _client!));
+                        break;
+                    case "list":
+                        await command.ModifyOriginalResponseAsync(properties => properties.Content = SlashCommands.ListPlayers(command, _client!));
+                        break;
+                    case "set":
+                        switch (command.Data.Options.First().Options.First().Name)
+                        {
+                            case "name":
+                                await command.ModifyOriginalResponseAsync(properties => properties.Content = SlashCommands.SetPlayerName(command, _client!));
+                                break;
+                            case "rank":
+                                await SlashCommands.SetPlayerRank(command, _client!);
+                                break;
+                        }
+                        break;
+                }
                 break;
             case "tournament":
                 switch (command.Data.Options.First().Name)
@@ -280,6 +341,9 @@ public class DiscordConnection
                         break;
                     case "leave":
                         await SlashCommands.LeaveTournament(command);
+                        break;
+                    case "list":
+                        await command.ModifyOriginalResponseAsync(properties => properties.Content = SlashCommands.ListTournaments(command));
                         break;
                 }
                 break;
@@ -300,6 +364,20 @@ public class DiscordConnection
                 SocketGuild guild = _client!.GetGuild(command.GuildId!.Value);
                 await RecreateCommands(guild);
                 await command.ModifyOriginalResponseAsync(properties => properties.Content = "Alle Befehle werden neu erstellt");
+                break;
+            case "game":
+                switch (command.Data.Options.First().Name)
+                {
+                    case "create":
+                        await command.ModifyOriginalResponseAsync(properties => properties.Content = SlashCommands.CreateGame(command));
+                        break;
+                    case "delete":
+                        await command.ModifyOriginalResponseAsync(properties => properties.Content = SlashCommands.DeleteGame(command));
+                        break;
+                    case "list":
+                        await command.ModifyOriginalResponseAsync(properties => properties.Content = SlashCommands.ListGames(command));
+                        break;
+                }
                 break;
             default:
                 await command.ModifyOriginalResponseAsync(properties => properties.Content = "Befehl wurde nicht gefunden, bitte bei @NekoFerris melden");

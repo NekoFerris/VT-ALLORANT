@@ -11,7 +11,7 @@ using VT_ALLORANT.Controller;
 namespace VT_ALLORANT.Migrations
 {
     [DbContext(typeof(DBAccess))]
-    [Migration("20240716081812_Initial")]
+    [Migration("20240717175904_Initial")]
     partial class Initial
     {
         /// <inheritdoc />
@@ -147,11 +147,13 @@ namespace VT_ALLORANT.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("INTEGER");
 
+                    b.Property<bool>("CanChangeRank")
+                        .HasColumnType("INTEGER");
+
                     b.Property<int>("DiscordUserId")
                         .HasColumnType("INTEGER");
 
                     b.Property<string>("Name")
-                        .IsRequired()
                         .HasColumnType("TEXT");
 
                     b.Property<int>("Rank")
@@ -280,15 +282,7 @@ namespace VT_ALLORANT.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("INTEGER");
 
-                    b.Property<string>("NAME")
-                        .IsRequired()
-                        .HasColumnType("TEXT");
-
                     b.Property<string>("PUUID")
-                        .IsRequired()
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("TAG")
                         .IsRequired()
                         .HasColumnType("TEXT");
 

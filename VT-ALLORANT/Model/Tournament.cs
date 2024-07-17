@@ -107,4 +107,12 @@ public class Tournament
         using DBAccess dBAccess = new();
         return [.. dBAccess.Tournaments.Include(t => t.Teams).Include(t => t.Moderators).Include(t => t.Observers).Include(t => t.Games)];
     }
+
+    internal void Delete()
+    {
+        using DBAccess dBAccess = new();
+        dBAccess.Games.RemoveRange(dBAccess.Games.Where(g => g.TournamentId == this.TournamentId));
+        dBAccess.Remove(this);
+        dBAccess.SaveChanges();
+    }
 }

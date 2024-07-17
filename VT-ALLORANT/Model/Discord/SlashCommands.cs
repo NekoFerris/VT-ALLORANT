@@ -9,7 +9,7 @@ namespace VT_ALLORANT.Model.Discord
     {
         public static string Register(SocketSlashCommand command, DiscordSocketClient client)
         {
-            List<SocketSlashCommandDataOption> options = [.. command.Data.Options];
+            List<SocketSlashCommandDataOption> options = [.. command.Data.Options.First().Options];
             ValorantUser valorantUser;
             string valoname = "";
             string tag = "";
@@ -20,8 +20,6 @@ namespace VT_ALLORANT.Model.Discord
                 valorantUser = new()
                 {
                     PUUID = ValorantConnection.GetUserUUIDByNameAndTag(valoname, tag),
-                    NAME = valoname,
-                    TAG = tag
                 };
             }
             catch
@@ -41,7 +39,7 @@ namespace VT_ALLORANT.Model.Discord
             //    properties.Nickname = name;
             //}).Wait();
             user.AddRoleAsync(DiscordRole.GetDiscordRoleIdByType(RoleType.Player)).Wait();
-            return $"Regestrierung für VTuber {name.Trim()} mit dem Valorant Account {valorantUser.NAME}#{valorantUser.TAG} erfolgreich abgeschlossen";
+            return $"Regestrierung für VTuber {name.Trim()} mit dem Valorant Account {valoname}#{tag} erfolgreich abgeschlossen";
         }
 
         public static string Unregister(SocketSlashCommand command, DiscordSocketClient client)
@@ -159,21 +157,6 @@ namespace VT_ALLORANT.Model.Discord
             return $"{newLeader.Name} ist jetzt der Anführer vom Team {team.Name}";
         }
 
-        internal static string SendFriendRequest(SocketSlashCommand command, DiscordSocketClient client)
-        {
-            string name = command.Data.Options.ToList()[0].Value.ToString()?.Trim() ?? throw new Exception("Kein Name angegeben");
-            try
-            {
-                Player player = Player.Load(player => player.DiscordUser.DiscordId == GetUserId(client, name, command.GuildId!.Value))!;
-                ValorantConnection.SendFriendRequest(player.ValorantUser.NAME, player.ValorantUser.TAG);
-            }
-            catch (Exception e)
-            {
-                return e.Message;
-            }
-            return $"Freundschaftsanfrage an {name} gesendet";
-        }
-
         internal static string MatchGame(SocketSlashCommand command)
         {
             Team team1;
@@ -196,7 +179,7 @@ namespace VT_ALLORANT.Model.Discord
             return $"Spiel zwischen {team1.Name} und {team2.Name} erstellt";
         }
 
-        internal static async Task UpdateRanking(SocketSlashCommand command, DiscordSocketClient client)
+        internal static async Task SetPlayerRank(SocketSlashCommand command, DiscordSocketClient client)
         {
             Player player;
             try
@@ -329,7 +312,15 @@ namespace VT_ALLORANT.Model.Discord
 
         internal static string DeleteTournament(SocketSlashCommand command)
         {
-            throw new NotImplementedException();
+            try
+            {
+                Tournament.Load(Int32.Parse(command.Data.Options.First().Options.First().Value.ToString()?.Trim() ?? throw new Exception("Kein Turniername angegeben"))).Delete();
+                return $"Turnier {command.Data.Options.First().Options.First().Value.ToString()?.Trim()} gelöscht";
+            }
+            catch (Exception e)
+            {
+                return e.Message;
+            }
         }
 
         internal static string SetRole(SocketSlashCommand command, DiscordSocketClient client)
@@ -346,9 +337,107 @@ namespace VT_ALLORANT.Model.Discord
             return $"Rolle {Enum.GetName(typeof(RoleType), roleType)} zu {role!.Name} zugewiesen";
         }
 
+        internal static string SetPlayerName(SocketSlashCommand command, DiscordSocketClient discordSocketClient)
+        {
+            Player player;
+            try
+            {
+                player = Player.Load(player => player.DiscordUser.DiscordId == command.User.Id)!;
+                player.Name = command.Data.Options.First().Options.First().Value.ToString()?.Trim() ?? throw new Exception("Kein Name angegeben");
+                player.SaveChanges();
+                discordSocketClient.GetGuild(command.GuildId!.Value).GetUser(command.User.Id).ModifyAsync(properties =>
+                {
+                    properties.Nickname = player.Name;
+                }).Wait();
+            }
+            catch (Exception e)
+            {
+                return e.Message;
+            }
+            return $"Name zu {player.Name} geändert";
+        }
+
         internal static ulong GetUserId(DiscordSocketClient client, String username, ulong guildId)
         {
             return client.GetGuild(guildId).Users.FirstOrDefault(u => u.Username == username)!.Id;
+        }
+
+        internal static string ListTeams(SocketSlashCommand command)
+        {
+            List<Team> teams = Team.GetAll();
+            string teamList = "```";
+            teamList += "Teams:\n";
+            foreach (Team team in teams)
+            {
+                teamList += $"{team.TeamId,-4} - {team.Name}\n";
+            }
+            teamList += "```";
+            return teamList;
+        }
+
+        internal static string ListTeamMembers(SocketSlashCommand command)
+        {
+            Team team;
+            try
+            {
+                team = Team.LoadTeam(Int32.Parse(command.Data.Options.First().Options.First().Value.ToString()?.Trim()!))!;
+            }
+            catch (Exception e)
+            {
+                return e.Message;
+            }
+            string teamList = "```";
+            teamList += $"Team {team.Name}:\n";
+            foreach (Player player in team.Players)
+            {
+                if(team.Leader.PlayerId == player.PlayerId)
+                    teamList += $"{player.Name} 👑\n";
+                else
+                    teamList += $"{player.Name}\n";
+            }
+            teamList += "```";
+            return teamList;
+        }
+
+        internal static string ListPlayers(SocketSlashCommand command, DiscordSocketClient discordSocketClient)
+        {
+            List<Player> players = Player.GetAll();
+            string playerList = "```";
+            playerList += "Spieler:\n";
+            foreach (Player player in players)
+            {
+                playerList += $"{discordSocketClient.GetUser(player.DiscordUser.DiscordId).Username.PadRight(20)} - {player.Name}\n";
+            }
+            playerList += "```";
+            return playerList;
+        }
+
+        internal static string ListTournaments(SocketSlashCommand command)
+        {
+            ICollection<Tournament> tournaments = Tournament.GetAll();
+            string tournamentList = "```";
+            tournamentList += "Turniere:\n";
+            foreach (Tournament tournament in tournaments)
+            {
+                tournamentList += $"{tournament.TournamentId,-4} - {tournament.Name}\n";
+            }
+            tournamentList += "```";
+            return tournamentList;
+        }
+
+        internal static string CreateGame(SocketSlashCommand command)
+        {
+            throw new NotImplementedException();
+        }
+
+        internal static string DeleteGame(SocketSlashCommand command)
+        {
+            throw new NotImplementedException();
+        }
+
+        internal static string ListGames(SocketSlashCommand command)
+        {
+            throw new NotImplementedException();
         }
     }
 }

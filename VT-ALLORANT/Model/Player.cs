@@ -69,7 +69,7 @@ public class Player
 
     public void Insert()
     {
-        DBAccess dBAccess = new();
+        using DBAccess dBAccess = new();
         if (dBAccess.Players.Any(p => p.DiscordUser!.DiscordId == DiscordUser!.DiscordId))
         {
             throw new Exception($"{Name} bereits registriert");
@@ -80,7 +80,7 @@ public class Player
 
     public void Delete()
     {
-        DBAccess dBAccess = new();
+        using DBAccess dBAccess = new();
         if (!dBAccess.Players.Any(p => p.DiscordUser!.DiscordId == DiscordUser!.DiscordId))
         {
             throw new Exception($"{Name} ist nicht registriert");
@@ -93,7 +93,7 @@ public class Player
 
     public static Player? Load(Func<Player, bool> predicate)
     {
-        DBAccess dBAccess = new();
+        using DBAccess dBAccess = new();
         Player? player = dBAccess.Players.Include(d => d.DiscordUser)
                                          .Include(v => v.ValorantUser)
                                          .FirstOrDefault(predicate);
@@ -102,15 +102,22 @@ public class Player
 
     public static List<Player> GetAll()
     {
-        DBAccess dBAccess = new();
+        using DBAccess dBAccess = new();
         return [.. dBAccess.Players.Include(d => d.DiscordUser).Include(v => v.ValorantUser)];
     }
 
     internal static List<Player> GetPlayersForTeam(Team t)
     {
-        DBAccess dBAccess = new();
+        using DBAccess dBAccess = new();
         return [.. dBAccess.Players.Include(d => d.DiscordUser)
                                    .Include(v => v.ValorantUser)
                                    .Where(player => player.Teams!.Contains(t))];
+    }
+
+    internal void SaveChanges()
+    {
+        using DBAccess dBAccess = new();
+        dBAccess.Update(this);
+        dBAccess.SaveChanges();
     }
 }
