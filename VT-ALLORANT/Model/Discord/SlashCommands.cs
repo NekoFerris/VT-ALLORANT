@@ -7,7 +7,7 @@ namespace VT_ALLORANT.Model.Discord
 {
     public static class SlashCommands
     {
-        public static string Register(SocketSlashCommand command, DiscordSocketClient client)
+        public static string RegisterPlayer(SocketSlashCommand command, DiscordSocketClient client)
         {
             List<SocketSlashCommandDataOption> options = [.. command.Data.Options.First().Options];
             ValorantUser valorantUser;
@@ -42,7 +42,7 @@ namespace VT_ALLORANT.Model.Discord
             return $"Regestrierung für VTuber {name.Trim()} mit dem Valorant Account {valoname}#{tag} erfolgreich abgeschlossen";
         }
 
-        public static string Unregister(SocketSlashCommand command, DiscordSocketClient client)
+        public static string UnregisterPlayer(SocketSlashCommand command, DiscordSocketClient client)
         {
             List<SocketSlashCommandDataOption> options = [.. command.Data.Options];
             Player player;
@@ -86,7 +86,7 @@ namespace VT_ALLORANT.Model.Discord
             return $"Team {team.Name} gelöscht";
         }
 
-        public static string AddPlayer(SocketSlashCommand command, DiscordSocketClient client)
+        public static string AddPlayerToTeam(SocketSlashCommand command, DiscordSocketClient client)
         {
             Team team;
             Player playerToAdd;
@@ -97,7 +97,7 @@ namespace VT_ALLORANT.Model.Discord
                 {
                     throw new Exception($"Das Team {team.Name} ist bereits voll");
                 }
-                playerToAdd = Player.Load(player => player.DiscordUser.DiscordId == GetUserId(client, command.Data.Options.First().Options.First().Options.First().Value.ToString()?.Trim() ?? throw new Exception("Kein Spieler angegeben"), command.GuildId!.Value)) ?? throw new Exception("Spieler nicht regestriert");
+                playerToAdd = Player.Load(player => player.DiscordUser.DiscordId == GetDiscordUserId(client, command.Data.Options.First().Options.First().Options.First().Value.ToString()?.Trim() ?? throw new Exception("Kein Spieler angegeben"), command.GuildId!.Value)) ?? throw new Exception("Spieler nicht regestriert");
                 if (team.Players.Any(p => p.PlayerId == playerToAdd.PlayerId))
                 {
                     throw new Exception($"{playerToAdd.Name} ist bereits im Team {team.Name}");
@@ -111,14 +111,14 @@ namespace VT_ALLORANT.Model.Discord
             return $"{playerToAdd.Name} wurde zu Team {team.Name} hinzugefügt";
         }
 
-        public static string RemovePlayer(SocketSlashCommand command, DiscordSocketClient client)
+        public static string RemovePlayerFromTeam(SocketSlashCommand command, DiscordSocketClient client)
         {
             Team team;
             Player playerToRemove;
             try
             {
                 team = Team.Load(team => team.Leader.PlayerId == Player.Load(player => player.DiscordUser.DiscordId == command.User.Id)!.PlayerId) ?? throw new Exception("Du bist nicht der Anführer eines Teams");
-                playerToRemove = Player.Load(player => player.DiscordUser.DiscordId == GetUserId(client, command.Data.Options.First().Options.First().Options.First().Value.ToString()?.Trim() ?? throw new Exception("Kein Spieler angegeben"), command.GuildId!.Value))!;
+                playerToRemove = Player.Load(player => player.DiscordUser.DiscordId == GetDiscordUserId(client, command.Data.Options.First().Options.First().Options.First().Value.ToString()?.Trim() ?? throw new Exception("Kein Spieler angegeben"), command.GuildId!.Value))!;
                 team.RemovePlayer(playerToRemove);
                 if (!team.Players.Any(p => p.PlayerId == playerToRemove.PlayerId))
                 {
@@ -132,14 +132,14 @@ namespace VT_ALLORANT.Model.Discord
             return $"{playerToRemove.Name} wurde vom Team {team.Name} entfernt";
         }
 
-        public static string ChangeLeader(SocketSlashCommand command, DiscordSocketClient client)
+        public static string ChangeLeaderFromTeam(SocketSlashCommand command, DiscordSocketClient client)
         {
             Team team;
             Player newLeader;
             try
             {
                 team = Team.Load(team => team.Leader.PlayerId == Player.Load(player => player.DiscordUser.DiscordId == command.User.Id)!.PlayerId) ?? throw new Exception("Du bist nicht der Anführer eines Teams");
-                newLeader = Player.Load(player => player.DiscordUser.DiscordId == GetUserId(client, command.Data.Options.First().Options.First().Options.First().Value.ToString()?.Trim() ?? throw new Exception("Kein Spieler angegeben"), command.GuildId!.Value))!;
+                newLeader = Player.Load(player => player.DiscordUser.DiscordId == GetDiscordUserId(client, command.Data.Options.First().Options.First().Options.First().Value.ToString()?.Trim() ?? throw new Exception("Kein Spieler angegeben"), command.GuildId!.Value))!;
                 if (newLeader.PlayerId == team.Leader.PlayerId)
                 {
                     throw new Exception("Du bist bereits der Anführer dieses Teams");
@@ -157,7 +157,7 @@ namespace VT_ALLORANT.Model.Discord
             return $"{newLeader.Name} ist jetzt der Anführer vom Team {team.Name}";
         }
 
-        internal static string MatchGame(SocketSlashCommand command)
+        internal static string MatchGameForTournament(SocketSlashCommand command)
         {
             Team team1;
             Team team2;
@@ -190,7 +190,7 @@ namespace VT_ALLORANT.Model.Discord
                 }
                 else
                 {
-                    player = Player.Load(player => player.DiscordUser.DiscordId == GetUserId(client, command.Data.Options.First().Options.First().Value.ToString()?.Trim() ?? throw new Exception("Kein Spieler angegeben"), command.GuildId!.Value))!;
+                    player = Player.Load(player => player.DiscordUser.DiscordId == GetDiscordUserId(client, command.Data.Options.First().Options.First().Value.ToString()?.Trim() ?? throw new Exception("Kein Spieler angegeben"), command.GuildId!.Value))!;
                 }
                 MessageComponent rankList = new ComponentBuilder()
                 .WithSelectMenu(new SelectMenuBuilder()
@@ -233,7 +233,7 @@ namespace VT_ALLORANT.Model.Discord
             }
         }
 
-        internal static async Task JoinTournament(SocketSlashCommand command)
+        internal static async Task TeamJoinTournament(SocketSlashCommand command)
         {
             DBAccess dBAccess = new();
             try
@@ -264,7 +264,7 @@ namespace VT_ALLORANT.Model.Discord
             }
         }
 
-        internal static async Task LeaveTournament(SocketSlashCommand command)
+        internal static async Task TeamLeaveTournament(SocketSlashCommand command)
         {
             using DBAccess dBAccess = new();
             try
@@ -307,7 +307,6 @@ namespace VT_ALLORANT.Model.Discord
             {
                 return e.Message;
             }
-
         }
 
         internal static string DeleteTournament(SocketSlashCommand command)
@@ -323,7 +322,7 @@ namespace VT_ALLORANT.Model.Discord
             }
         }
 
-        internal static string SetRole(SocketSlashCommand command, DiscordSocketClient client)
+        internal static string SetRoleForPlayer(SocketSlashCommand command, DiscordSocketClient client)
         {
             ReadOnlySpan<char> roleId = command.Data.Options.First().Options.First().Options.First().Value.ToString()?.Trim() ?? throw new Exception("Kein Rollenname angegeben");
             RoleType roleType = (RoleType)Enum.Parse(typeof(RoleType), roleId.ToString());
@@ -357,7 +356,7 @@ namespace VT_ALLORANT.Model.Discord
             return $"Name zu {player.Name} geändert";
         }
 
-        internal static ulong GetUserId(DiscordSocketClient client, String username, ulong guildId)
+        internal static ulong GetDiscordUserId(DiscordSocketClient client, String username, ulong guildId)
         {
             return client.GetGuild(guildId).Users.FirstOrDefault(u => u.Username == username)!.Id;
         }
@@ -375,7 +374,7 @@ namespace VT_ALLORANT.Model.Discord
             return teamList;
         }
 
-        internal static string ListTeamMembers(SocketSlashCommand command)
+        internal static string ShowTeam(SocketSlashCommand command)
         {
             Team team;
             try
@@ -387,7 +386,9 @@ namespace VT_ALLORANT.Model.Discord
                 return e.Message;
             }
             string teamList = "```";
-            teamList += $"Team {team.Name}:\n";
+            teamList += $"Team: {team.Name}\n";
+            teamList += $"Gestamtpunkte: {team.TeamRank}\n";
+            teamList += "Spieler:\n";
             foreach (Player player in team.Players)
             {
                 if(team.Leader.PlayerId == player.PlayerId)

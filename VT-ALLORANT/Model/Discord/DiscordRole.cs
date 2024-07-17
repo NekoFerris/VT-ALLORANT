@@ -17,38 +17,35 @@ public class DiscordRole()
     [Key]
     public RoleType RoleType { get; set; }
 
-    public static void SetupRoles()
+    public static List<DiscordRole> DefaultRoles()
     {
-        DBAccess dBAccess = new();
-        if (!dBAccess.DiscordRoles.Any())
-        {
-            dBAccess.DiscordRoles.Add(new DiscordRole()
+        List<DiscordRole> discordRoles = [];
+            discordRoles.Add(new DiscordRole()
             {
                 RoleId = 1,
                 RoleType = RoleType.Admin
             });
-            dBAccess.DiscordRoles.Add(new DiscordRole()
+            discordRoles.Add(new DiscordRole()
             {
                 RoleId = 2,
                 RoleType = RoleType.Moderator
             });
-            dBAccess.DiscordRoles.Add(new DiscordRole()
+            discordRoles.Add(new DiscordRole()
             {
                 RoleId = 3,
                 RoleType = RoleType.Player
             });
-            dBAccess.DiscordRoles.Add(new DiscordRole()
+            discordRoles.Add(new DiscordRole()
             {
                 RoleId = 4,
                 RoleType = RoleType.TeamLeader
             });
-            dBAccess.DiscordRoles.Add(new DiscordRole()
+            discordRoles.Add(new DiscordRole()
             {
                 RoleId = 5,
                 RoleType = RoleType.TeamMember
             });
-            dBAccess.SaveChanges();
-        }
+        return discordRoles;
     }
 
     public static void SetRole(RoleType roleType, ulong roleId)

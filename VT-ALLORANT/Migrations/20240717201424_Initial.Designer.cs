@@ -11,7 +11,7 @@ using VT_ALLORANT.Controller;
 namespace VT_ALLORANT.Migrations
 {
     [DbContext(typeof(DBAccess))]
-    [Migration("20240717175904_Initial")]
+    [Migration("20240717201424_Initial")]
     partial class Initial
     {
         /// <inheritdoc />
@@ -31,6 +31,33 @@ namespace VT_ALLORANT.Migrations
                     b.HasKey("RoleType");
 
                     b.ToTable("DiscordRoles");
+
+                    b.HasData(
+                        new
+                        {
+                            RoleType = 1L,
+                            RoleId = 1ul
+                        },
+                        new
+                        {
+                            RoleType = 2L,
+                            RoleId = 2ul
+                        },
+                        new
+                        {
+                            RoleType = 3L,
+                            RoleId = 3ul
+                        },
+                        new
+                        {
+                            RoleType = 4L,
+                            RoleId = 4ul
+                        },
+                        new
+                        {
+                            RoleType = 5L,
+                            RoleId = 5ul
+                        });
                 });
 
             modelBuilder.Entity("GameObserver", b =>
@@ -60,6 +87,138 @@ namespace VT_ALLORANT.Migrations
                     b.HasKey("RankId");
 
                     b.ToTable("RankScores");
+
+                    b.HasData(
+                        new
+                        {
+                            RankId = 1,
+                            Score = 1
+                        },
+                        new
+                        {
+                            RankId = 2,
+                            Score = 2
+                        },
+                        new
+                        {
+                            RankId = 3,
+                            Score = 3
+                        },
+                        new
+                        {
+                            RankId = 4,
+                            Score = 4
+                        },
+                        new
+                        {
+                            RankId = 5,
+                            Score = 5
+                        },
+                        new
+                        {
+                            RankId = 6,
+                            Score = 6
+                        },
+                        new
+                        {
+                            RankId = 7,
+                            Score = 7
+                        },
+                        new
+                        {
+                            RankId = 8,
+                            Score = 8
+                        },
+                        new
+                        {
+                            RankId = 9,
+                            Score = 9
+                        },
+                        new
+                        {
+                            RankId = 10,
+                            Score = 10
+                        },
+                        new
+                        {
+                            RankId = 11,
+                            Score = 11
+                        },
+                        new
+                        {
+                            RankId = 12,
+                            Score = 12
+                        },
+                        new
+                        {
+                            RankId = 13,
+                            Score = 13
+                        },
+                        new
+                        {
+                            RankId = 14,
+                            Score = 14
+                        },
+                        new
+                        {
+                            RankId = 15,
+                            Score = 15
+                        },
+                        new
+                        {
+                            RankId = 16,
+                            Score = 16
+                        },
+                        new
+                        {
+                            RankId = 17,
+                            Score = 17
+                        },
+                        new
+                        {
+                            RankId = 18,
+                            Score = 18
+                        },
+                        new
+                        {
+                            RankId = 19,
+                            Score = 19
+                        },
+                        new
+                        {
+                            RankId = 20,
+                            Score = 20
+                        },
+                        new
+                        {
+                            RankId = 21,
+                            Score = 21
+                        },
+                        new
+                        {
+                            RankId = 22,
+                            Score = 22
+                        },
+                        new
+                        {
+                            RankId = 23,
+                            Score = 23
+                        },
+                        new
+                        {
+                            RankId = 24,
+                            Score = 24
+                        },
+                        new
+                        {
+                            RankId = 25,
+                            Score = 25
+                        },
+                        new
+                        {
+                            RankId = 26,
+                            Score = 26
+                        });
                 });
 
             modelBuilder.Entity("TeamPlayer", b =>

@@ -310,6 +310,8 @@ namespace VT_ALLORANT.Controller
                     j.ToTable("GameObserver");
                 }
             );
+            modelBuilder.Entity<DiscordRole>().HasData(DiscordRole.DefaultRoles());
+            modelBuilder.Entity<RankScore>().HasData(RankScore.DefaultRankScores());
         }
     }
 }
