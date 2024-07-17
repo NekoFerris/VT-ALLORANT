@@ -363,7 +363,7 @@ namespace VT_ALLORANT.Migrations
                     b.Property<int>("CurrentStage")
                         .HasColumnType("INTEGER");
 
-                    b.Property<int>("MaxRank")
+                    b.Property<int>("MaxPlayerRank")
                         .HasColumnType("INTEGER");
 
                     b.Property<int>("MaxTeamRank")
@@ -372,7 +372,7 @@ namespace VT_ALLORANT.Migrations
                     b.Property<int>("MaxTeams")
                         .HasColumnType("INTEGER");
 
-                    b.Property<int>("MinRank")
+                    b.Property<int>("MinPlayerRank")
                         .HasColumnType("INTEGER");
 
                     b.Property<string>("Name")

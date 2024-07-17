@@ -305,8 +305,12 @@ namespace VT_ALLORANT.Model.Discord
             }
         }
 
-        internal static string CreateTournament(SocketSlashCommand command)
+        internal static string CreateTournament(SocketSlashCommand command, DiscordSocketClient discordSocketClient)
         {
+            if (!GetDiscordUserRoles(discordSocketClient, command.User.Id, command.GuildId!.Value).Any(r => r.Id == DiscordRole.GetDiscordRoleIdByType(RoleType.Admin) || r.Id == DiscordRole.GetDiscordRoleIdByType(RoleType.Moderator)))
+            {
+                return "Du hast nicht die Berechtigung für diesen Befehl";
+            }
             try
             {
                 Tournament.Create(command.Data.Options.First().Options.First().Value.ToString()?.Trim() ?? throw new Exception("Kein Turniername angegeben"));
@@ -318,8 +322,12 @@ namespace VT_ALLORANT.Model.Discord
             }
         }
 
-        internal static string DeleteTournament(SocketSlashCommand command)
+        internal static string DeleteTournament(SocketSlashCommand command, DiscordSocketClient discordSocketClient)
         {
+            if (!GetDiscordUserRoles(discordSocketClient, command.User.Id, command.GuildId!.Value).Any(r => r.Id == DiscordRole.GetDiscordRoleIdByType(RoleType.Admin) || r.Id == DiscordRole.GetDiscordRoleIdByType(RoleType.Moderator)))
+            {
+                return "Du hast nicht die Berechtigung für diesen Befehl";
+            }
             try
             {
                 Tournament.Load(Int32.Parse(command.Data.Options.First().Options.First().Value.ToString()?.Trim() ?? throw new Exception("Kein Turniername angegeben"))).Delete();
@@ -368,6 +376,11 @@ namespace VT_ALLORANT.Model.Discord
         internal static ulong GetDiscordUserId(DiscordSocketClient client, String username, ulong guildId)
         {
             return client.GetGuild(guildId).Users.FirstOrDefault(u => u.Username == username)!.Id;
+        }
+
+        internal static List<SocketRole> GetDiscordUserRoles(DiscordSocketClient client, ulong userId, ulong guildId)
+        {
+            return [.. client.GetGuild(guildId).GetUser(userId).Roles];
         }
 
         internal static string ListTeams(SocketSlashCommand command)
@@ -456,6 +469,11 @@ namespace VT_ALLORANT.Model.Discord
             {
             tournamentList += $"Offen für Registrierung: Nein\n";
             }
+            tournamentList += $"Maximale Anzahl an Teams: {tournament.MaxTeams}\n";
+            tournamentList += $"Minimale Spieler Rang: {tournament.MinPlayerRank}\n";
+            tournamentList += $"Maximaler Spieler Rang: {tournament.MaxPlayerRank}\n";
+            tournamentList += $"Maximaler Team Rang: {(float)tournament.MaxTeamRank/10}\n";
+            tournamentList += $"Aktuelle Stage: {tournament.CurrentStage}\n";
             tournamentList += $"Teams:\n";
             foreach (Team team in tournament.Teams)
             {
@@ -465,8 +483,12 @@ namespace VT_ALLORANT.Model.Discord
             return tournamentList;
         }
 
-        internal static string SetTournamentOpenForRegistration(SocketSlashCommand command)
+        internal static string SetTournamentOpenForRegistration(SocketSlashCommand command, DiscordSocketClient discordSocketClient)
         {
+            if (!GetDiscordUserRoles(discordSocketClient, command.User.Id, command.GuildId!.Value).Any(r => r.Id == DiscordRole.GetDiscordRoleIdByType(RoleType.Admin) || r.Id == DiscordRole.GetDiscordRoleIdByType(RoleType.Moderator)))
+            {
+                return "Du hast nicht die Berechtigung für diesen Befehl";
+            }
             Tournament tournament;
             try
             {
@@ -483,6 +505,10 @@ namespace VT_ALLORANT.Model.Discord
 
         internal static string CreateGame(SocketSlashCommand command, DiscordSocketClient discordSocketClient)
         {
+            if (!GetDiscordUserRoles(discordSocketClient, command.User.Id, command.GuildId!.Value).Any(r => r.Id == DiscordRole.GetDiscordRoleIdByType(RoleType.Admin) || r.Id == DiscordRole.GetDiscordRoleIdByType(RoleType.Moderator)))
+            {
+                return "Du hast nicht die Berechtigung für diesen Befehl";
+            }
             Team team1;
             Team team2;
             Tournament tournament;
@@ -507,8 +533,12 @@ namespace VT_ALLORANT.Model.Discord
             return $"Spiel zwischen {team1.Name} und {team2.Name} erstellt";
         }
 
-        internal static string DeleteGame(SocketSlashCommand command)
+        internal static string DeleteGame(SocketSlashCommand command, DiscordSocketClient discordSocketClient)
         {
+            if (!GetDiscordUserRoles(discordSocketClient, command.User.Id, command.GuildId!.Value).Any(r => r.Id == DiscordRole.GetDiscordRoleIdByType(RoleType.Admin) || r.Id == DiscordRole.GetDiscordRoleIdByType(RoleType.Moderator)))
+            {
+                return "Du hast nicht die Berechtigung für diesen Befehl";
+            }
             try
             {
                 Game gameToDelete = Game.Load(g => g.GameId == Int32.Parse(command.Data.Options.First().Options.First().Value.ToString()?.Trim() ?? throw new Exception("Kein Spiel angegeben"))) ?? throw new Exception("Spiel nicht gefunden");
@@ -540,8 +570,12 @@ namespace VT_ALLORANT.Model.Discord
             return gameList;
         }
 
-        internal static string SetTournamentStage(SocketSlashCommand command)
+        internal static string SetTournamentStage(SocketSlashCommand command, DiscordSocketClient discordSocketClient)
         {
+            if (!GetDiscordUserRoles(discordSocketClient, command.User.Id, command.GuildId!.Value).Any(r => r.Id == DiscordRole.GetDiscordRoleIdByType(RoleType.Admin) || r.Id == DiscordRole.GetDiscordRoleIdByType(RoleType.Moderator)))
+            {
+                return "Du hast nicht die Berechtigung für diesen Befehl";
+            }
             Tournament tournament;
             try
             {
@@ -556,8 +590,12 @@ namespace VT_ALLORANT.Model.Discord
             return $"Turnier {tournament.Name} ist jetzt in Stage {tournament.CurrentStage}";
         }
 
-        internal static string SetTournamentMaxTeams(SocketSlashCommand command)
+        internal static string SetTournamentMaxTeams(SocketSlashCommand command, DiscordSocketClient discordSocketClient)
         {
+            if (!GetDiscordUserRoles(discordSocketClient, command.User.Id, command.GuildId!.Value).Any(r => r.Id == DiscordRole.GetDiscordRoleIdByType(RoleType.Admin) || r.Id == DiscordRole.GetDiscordRoleIdByType(RoleType.Moderator)))
+            {
+                return "Du hast nicht die Berechtigung für diesen Befehl";
+            }
             Tournament tournament;
             try
             {
@@ -572,8 +610,12 @@ namespace VT_ALLORANT.Model.Discord
             return $"Turnier {tournament.Name} hat jetzt ein Maximum von {tournament.MaxTeams} Teams";
         }
 
-        internal static string SetTournamentMaxPlayerRank(SocketSlashCommand command)
+        internal static string SetTournamentMaxPlayerRank(SocketSlashCommand command, DiscordSocketClient discordSocketClient)
         {
+            if (!GetDiscordUserRoles(discordSocketClient, command.User.Id, command.GuildId!.Value).Any(r => r.Id == DiscordRole.GetDiscordRoleIdByType(RoleType.Admin) || r.Id == DiscordRole.GetDiscordRoleIdByType(RoleType.Moderator)))
+            {
+                return "Du hast nicht die Berechtigung für diesen Befehl";
+            }
             Tournament tournament;
             try
             {
@@ -588,8 +630,12 @@ namespace VT_ALLORANT.Model.Discord
             return $"Turnier {tournament.Name} hat jetzt ein Maximum von {tournament.MaxPlayerRank}";
         }
 
-        internal static Optional<string> SetTournamentMinPlayerRank(SocketSlashCommand command)
+        internal static string SetTournamentMinPlayerRank(SocketSlashCommand command, DiscordSocketClient discordSocketClient)
         {
+            if (!GetDiscordUserRoles(discordSocketClient, command.User.Id, command.GuildId!.Value).Any(r => r.Id == DiscordRole.GetDiscordRoleIdByType(RoleType.Admin) || r.Id == DiscordRole.GetDiscordRoleIdByType(RoleType.Moderator)))
+            {
+                return "Du hast nicht die Berechtigung für diesen Befehl";
+            }
             Tournament tournament;
             try
             {
@@ -604,8 +650,12 @@ namespace VT_ALLORANT.Model.Discord
             return $"Turnier {tournament.Name} hat jetzt ein Minimum von {tournament.MinPlayerRank}";
         }
 
-        internal static Optional<string> SetModeratorForTournament(SocketSlashCommand command, DiscordSocketClient discordSocketClient)
+        internal static string SetModeratorForTournament(SocketSlashCommand command, DiscordSocketClient discordSocketClient)
         {
+            if (!GetDiscordUserRoles(discordSocketClient, command.User.Id, command.GuildId!.Value).Any(r => r.Id == DiscordRole.GetDiscordRoleIdByType(RoleType.Admin) || r.Id == DiscordRole.GetDiscordRoleIdByType(RoleType.Moderator)))
+            {
+                return "Du hast nicht die Berechtigung für diesen Befehl";
+            }
             Tournament tournament;
             Player moderator;
             try
@@ -621,8 +671,12 @@ namespace VT_ALLORANT.Model.Discord
             return $"{moderator.Name} ist jetzt Moderator von {tournament.Name}";
         }
 
-        internal static Optional<string> SetTournamentMaxTeamRank(SocketSlashCommand command)
+        internal static Optional<string> SetTournamentMaxTeamRank(SocketSlashCommand command, DiscordSocketClient discordSocketClient)
         {
+            if (!GetDiscordUserRoles(discordSocketClient, command.User.Id, command.GuildId!.Value).Any(r => r.Id == DiscordRole.GetDiscordRoleIdByType(RoleType.Admin) || r.Id == DiscordRole.GetDiscordRoleIdByType(RoleType.Moderator)))
+            {
+                return "Du hast nicht die Berechtigung für diesen Befehl";
+            }
             Tournament tournament;
             try
             {
@@ -639,6 +693,10 @@ namespace VT_ALLORANT.Model.Discord
 
         internal static string AddObserverToTournament(SocketSlashCommand command, DiscordSocketClient discordSocketClient)
         {
+            if (!GetDiscordUserRoles(discordSocketClient, command.User.Id, command.GuildId!.Value).Any(r => r.Id == DiscordRole.GetDiscordRoleIdByType(RoleType.Admin) || r.Id == DiscordRole.GetDiscordRoleIdByType(RoleType.Moderator)))
+            {
+                return "Du hast nicht die Berechtigung für diesen Befehl";
+            }
             Tournament tournament;
             Player observer;
             try
@@ -656,6 +714,10 @@ namespace VT_ALLORANT.Model.Discord
 
         internal static string RemoveObserverFromTournament(SocketSlashCommand command, DiscordSocketClient discordSocketClient)
         {
+            if (!GetDiscordUserRoles(discordSocketClient, command.User.Id, command.GuildId!.Value).Any(r => r.Id == DiscordRole.GetDiscordRoleIdByType(RoleType.Admin) || r.Id == DiscordRole.GetDiscordRoleIdByType(RoleType.Moderator)))
+            {
+                return "Du hast nicht die Berechtigung für diesen Befehl";
+            }
             Tournament tournament;
             Player observer;
             try

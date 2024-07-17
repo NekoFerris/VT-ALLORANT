@@ -101,7 +101,7 @@ public class Tournament
         {
             Name = v,
             OpenForRegistration = true,
-            MaxTeamRank = 11,
+            MaxTeamRank = 110,
             MaxTeams = 128,
             CurrentStage = 0
         };

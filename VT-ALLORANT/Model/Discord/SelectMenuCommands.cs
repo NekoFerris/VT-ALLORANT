@@ -8,6 +8,11 @@ public class SelectMenuCommands()
     {
         string[] data = component.Data.CustomId.Split(":");
         Player player = Player.Load(player => player.PlayerId == Int32.Parse(data[1])) ?? throw new Exception("Spieler nicht gefunden");
+        if(player.DiscordUser.DiscordId != component.User.Id)
+        {
+            await component.DeferAsync();
+            return;
+        }
         if (!player.CanChangeRank)
         {
             await component.DeferAsync();
@@ -41,16 +46,30 @@ public class SelectMenuCommands()
             return;
         }
         Tournament tournament = Tournament.Load(Int32.Parse(string.Join(", ", component.Data.Values)));
+        if(joiningTeam.Players.Any(p => p.Rank < tournament.MinPlayerRank || p.Rank > tournament.MaxPlayerRank))
+        {
+            await component.FollowupAsync($"Du bist bereits in einem Team für {tournament.Name} angemeldet");
+            await component.DeleteOriginalResponseAsync();
+            return;
+        }
+        if(tournament.Teams.Any(t => t.TeamId == joiningTeam.TeamId))
+        {
+            await component.FollowupAsync($"Du bist bereits in einem Team für {tournament.Name} angemeldet");
+            await component.DeleteOriginalResponseAsync();
+            return;
+        }
         if (tournament.Teams.Count < tournament.MaxTeams)
         {
             tournament.AddTeam(joiningTeam);
             await component.FollowupAsync($"Team {joiningTeam.Name} erfolgreich für {tournament.Name} angemeldet");
             await component.DeleteOriginalResponseAsync();
+            return;
         }
         else
         {
             await component.FollowupAsync($"Das Turnier {tournament.Name} ist bereits voll");
             await component.DeleteOriginalResponseAsync();
+            return;
         }
     }
 

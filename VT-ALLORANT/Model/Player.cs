@@ -51,9 +51,9 @@ public class Player
     public DiscordUser DiscordUser { get; set; }
     public int ValorantUserId { get; set; }
     public ValorantUser ValorantUser { get; set; }
-    public ICollection<Team>? Teams { get; set; }
-    public ICollection<Tournament>? Tournaments { get; set; }
-    public ICollection<Game>? ObserverInGames { get; set; }
+    public ICollection<Team>? Teams { get; set; } = [];
+    public ICollection<Tournament>? Tournaments { get; set; } = [];
+    public ICollection<Game>? ObserverInGames { get; set; } = [];
     public bool CanChangeRank { get; set; } = true;
     public bool IsInAnyTeam => Teams!.Count != 0;    
 

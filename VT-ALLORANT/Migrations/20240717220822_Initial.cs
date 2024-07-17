@@ -61,8 +61,8 @@ namespace VT_ALLORANT.Migrations
                     MaxTeamRank = table.Column<int>(type: "INTEGER", nullable: false),
                     CurrentStage = table.Column<int>(type: "INTEGER", nullable: false),
                     MaxTeams = table.Column<int>(type: "INTEGER", nullable: false),
-                    MinRank = table.Column<int>(type: "INTEGER", nullable: false),
-                    MaxRank = table.Column<int>(type: "INTEGER", nullable: false)
+                    MinPlayerRank = table.Column<int>(type: "INTEGER", nullable: false),
+                    MaxPlayerRank = table.Column<int>(type: "INTEGER", nullable: false)
                 },
                 constraints: table =>
                 {

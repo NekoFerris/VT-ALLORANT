@@ -235,6 +235,7 @@ public class DiscordConnection
                 .WithType(ApplicationCommandOptionType.SubCommand)
                 .WithName("delete")
                 .WithDescription("Turnier löschen")
+                .AddOption("id", ApplicationCommandOptionType.Integer, "Id des Tuniers", isRequired: true)
             ).AddOption(new SlashCommandOptionBuilder()
                 .WithType(ApplicationCommandOptionType.SubCommand)
                 .WithName("join")
@@ -392,10 +393,10 @@ public class DiscordConnection
                 switch (command.Data.Options.First().Name)
                 {
                     case "create":
-                        await command.ModifyOriginalResponseAsync(properties => properties.Content = SlashCommands.CreateTournament(command));
+                        await command.ModifyOriginalResponseAsync(properties => properties.Content = SlashCommands.CreateTournament(command, _client!));
                         break;
                     case "delete":
-                        await command.ModifyOriginalResponseAsync(properties => properties.Content = SlashCommands.DeleteTournament(command));
+                        await command.ModifyOriginalResponseAsync(properties => properties.Content = SlashCommands.DeleteTournament(command, _client!));
                         break;
                     case "join":
                         await SlashCommands.TeamJoinTournament(command);
@@ -413,22 +414,22 @@ public class DiscordConnection
                         switch (command.Data.Options.First().Options.First().Name)
                         {
                             case "stage":
-                                await command.ModifyOriginalResponseAsync(properties => properties.Content = SlashCommands.SetTournamentStage(command));
+                                await command.ModifyOriginalResponseAsync(properties => properties.Content = SlashCommands.SetTournamentStage(command, _client!));
                                 break;
                             case "max-teams":
-                                await command.ModifyOriginalResponseAsync(properties => properties.Content = SlashCommands.SetTournamentMaxTeams(command));
+                                await command.ModifyOriginalResponseAsync(properties => properties.Content = SlashCommands.SetTournamentMaxTeams(command, _client!));
                                 break;
                             case "max-player-rank":
-                                await command.ModifyOriginalResponseAsync(properties => properties.Content = SlashCommands.SetTournamentMaxPlayerRank(command));
+                                await command.ModifyOriginalResponseAsync(properties => properties.Content = SlashCommands.SetTournamentMaxPlayerRank(command, _client!));
                                 break;
                             case "min-player-rank":
-                                await command.ModifyOriginalResponseAsync(properties => properties.Content = SlashCommands.SetTournamentMinPlayerRank(command));
+                                await command.ModifyOriginalResponseAsync(properties => properties.Content = SlashCommands.SetTournamentMinPlayerRank(command, _client!));
                                 break;
                             case "moderator":
                                 await command.ModifyOriginalResponseAsync(properties => properties.Content = SlashCommands.SetModeratorForTournament(command, _client!));
                                 break;
                             case "max-team-rank":
-                                await command.ModifyOriginalResponseAsync(properties => properties.Content = SlashCommands.SetTournamentMaxTeamRank(command));
+                                await command.ModifyOriginalResponseAsync(properties => properties.Content = SlashCommands.SetTournamentMaxTeamRank(command, _client!));
                                 break;
                         }
                         break;
@@ -470,7 +471,7 @@ public class DiscordConnection
                         await command.ModifyOriginalResponseAsync(properties => properties.Content = SlashCommands.CreateGame(command, _client!));
                         break;
                     case "delete":
-                        await command.ModifyOriginalResponseAsync(properties => properties.Content = SlashCommands.DeleteGame(command));
+                        await command.ModifyOriginalResponseAsync(properties => properties.Content = SlashCommands.DeleteGame(command, _client!));
                         break;
                     case "list":
                         await command.ModifyOriginalResponseAsync(properties => properties.Content = SlashCommands.ListGames(command));
