@@ -54,7 +54,7 @@ public class Player
     public ICollection<Team>? Teams { get; set; }
     public ICollection<Tournament>? Tournaments { get; set; }
     public ICollection<Game>? ObserverInGames { get; set; }
-    public static ulong DiscordRoleId { get; set; } = 1261987537740890143;
+    public bool CanChangeRank { get; set; } = true;
 
     public Player()
     {

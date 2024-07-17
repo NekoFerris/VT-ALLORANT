@@ -99,7 +99,7 @@ namespace VT_ALLORANT.Model.Discord
                 {
                     throw new Exception($"Das Team {team.Name} ist bereits voll");
                 }
-                playerToAdd = Player.Load(player => player.DiscordUser.DiscordId == GetUserId(client, command.Data.Options.First().Options.First().Options.First().Value.ToString()?.Trim() ?? throw new Exception("Kein Spieler angegeben"), command.GuildId!.Value))!;
+                playerToAdd = Player.Load(player => player.DiscordUser.DiscordId == GetUserId(client, command.Data.Options.First().Options.First().Options.First().Value.ToString()?.Trim() ?? throw new Exception("Kein Spieler angegeben"), command.GuildId!.Value)) ?? throw new Exception("Spieler nicht regestriert");
                 if (team.Players.Any(p => p.PlayerId == playerToAdd.PlayerId))
                 {
                     throw new Exception($"{playerToAdd.Name} ist bereits im Team {team.Name}");
@@ -119,9 +119,13 @@ namespace VT_ALLORANT.Model.Discord
             Player playerToRemove;
             try
             {
-                team = Team.Load(team => team.Leader.PlayerId == Player.Load(player => player.DiscordUser.DiscordId == command.User.Id)!.PlayerId)!;
+                team = Team.Load(team => team.Leader.PlayerId == Player.Load(player => player.DiscordUser.DiscordId == command.User.Id)!.PlayerId) ?? throw new Exception("Du bist nicht der Anführer eines Teams");
                 playerToRemove = Player.Load(player => player.DiscordUser.DiscordId == GetUserId(client, command.Data.Options.First().Options.First().Options.First().Value.ToString()?.Trim() ?? throw new Exception("Kein Spieler angegeben"), command.GuildId!.Value))!;
                 team.RemovePlayer(playerToRemove);
+                if (!team.Players.Any(p => p.PlayerId == playerToRemove.PlayerId))
+                {
+                    throw new Exception($"{playerToRemove.Name} ist nicht im Team {team.Name}");
+                }
             }
             catch (Exception e)
             {
@@ -136,11 +140,15 @@ namespace VT_ALLORANT.Model.Discord
             Player newLeader;
             try
             {
-                team = Team.Load(team => team.Leader.PlayerId == Player.Load(player => player.DiscordUser.DiscordId == command.User.Id)!.PlayerId)!;
+                team = Team.Load(team => team.Leader.PlayerId == Player.Load(player => player.DiscordUser.DiscordId == command.User.Id)!.PlayerId) ?? throw new Exception("Du bist nicht der Anführer eines Teams");
                 newLeader = Player.Load(player => player.DiscordUser.DiscordId == GetUserId(client, command.Data.Options.First().Options.First().Options.First().Value.ToString()?.Trim() ?? throw new Exception("Kein Spieler angegeben"), command.GuildId!.Value))!;
                 if (newLeader.PlayerId == team.Leader.PlayerId)
                 {
                     throw new Exception("Du bist bereits der Anführer dieses Teams");
+                }
+                if (!team.Players.Any(p => p.PlayerId == newLeader.PlayerId))
+                {
+                    throw new Exception($"{newLeader.Name} ist nicht im Team {team.Name}");
                 }
                 team.SetLeader(newLeader);
             }

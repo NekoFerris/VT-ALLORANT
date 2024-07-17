@@ -8,17 +8,26 @@ public class SelectMenuCommands()
     {
         string[] data = component.Data.CustomId.Split(":");
         Player player = Player.Load(player => player.PlayerId == Int32.Parse(data[1])) ?? throw new Exception("Spieler nicht gefunden");
-        if(player.DiscordUser.DiscordId != component.User.Id)
+        if (!player.CanChangeRank)
         {
             await component.DeferAsync();
+            await component.FollowupAsync($"Melde dich bei einem Moderator um deinen Rang zu ändern");
             return;
         }
-        using DBAccess dBAccess = new();
-        string rank = string.Join(", ", component.Data.Values);
-        Player playerToModify = dBAccess.Players.Find(player.PlayerId)!;
-        playerToModify!.Rank = Enum.Parse<PlayerRanks>(rank);
-        dBAccess.SaveChanges();
-        await component.FollowupAsync($"Rang {playerToModify.Rank} erfolgreich für {playerToModify.Name} gesetzt");
+        else
+        {
+            if (player.DiscordUser.DiscordId != component.User.Id)
+            {
+                await component.DeferAsync();
+                return;
+            }
+            using DBAccess dBAccess = new();
+            string rank = string.Join(", ", component.Data.Values);
+            Player playerToModify = dBAccess.Players.Find(player.PlayerId)!;
+            playerToModify!.Rank = Enum.Parse<PlayerRanks>(rank);
+            dBAccess.SaveChanges();
+            await component.FollowupAsync($"Rang {playerToModify.Rank} erfolgreich für {playerToModify.Name} gesetzt");
+        }
         await component.DeleteOriginalResponseAsync();
     }
 
@@ -26,7 +35,7 @@ public class SelectMenuCommands()
     {
         string[] data = component.Data.CustomId.Split(":");
         Team joiningTeam = Team.Load(team => team.TeamId == Int32.Parse(data[1])) ?? throw new Exception("Team nicht gefunden");
-        if(joiningTeam.Leader.DiscordUser.DiscordId != component.User.Id)
+        if (joiningTeam.Leader.DiscordUser.DiscordId != component.User.Id)
         {
             await component.DeferAsync();
             return;
@@ -49,7 +58,7 @@ public class SelectMenuCommands()
     {
         string[] data = component.Data.CustomId.Split(":");
         Team joiningTeam = Team.Load(team => team.TeamId == Int32.Parse(data[1])) ?? throw new Exception("Team nicht gefunden");
-        if(joiningTeam.Leader.DiscordUser.DiscordId != component.User.Id)
+        if (joiningTeam.Leader.DiscordUser.DiscordId != component.User.Id)
         {
             await component.DeferAsync();
             return;
