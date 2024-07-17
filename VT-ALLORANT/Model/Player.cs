@@ -4,6 +4,7 @@ using VT_ALLORANT.Controller;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.ComponentModel.DataAnnotations;
 using Microsoft.EntityFrameworkCore;
+using System.ComponentModel;
 
 namespace VT_ALLORANT.Model;
 
@@ -40,7 +41,6 @@ public enum PlayerRanks
 [Table("Players")]
 public class Player
 {
-    // Properties
     [Key]
     [ForeignKey("PlayerId")]
     public int PlayerId { get; set; }
@@ -55,6 +55,7 @@ public class Player
     public ICollection<Tournament>? Tournaments { get; set; }
     public ICollection<Game>? ObserverInGames { get; set; }
     public bool CanChangeRank { get; set; } = true;
+    public bool IsInAnyTeam => Teams!.Count != 0;    
 
     public Player()
     {
@@ -94,10 +95,9 @@ public class Player
     public static Player? Load(Func<Player, bool> predicate)
     {
         using DBAccess dBAccess = new();
-        Player? player = dBAccess.Players.Include(d => d.DiscordUser)
-                                         .Include(v => v.ValorantUser)
-                                         .FirstOrDefault(predicate);
-        return player;
+        return dBAccess.Players.Include(d => d.DiscordUser)
+                               .Include(v => v.ValorantUser)
+                               .FirstOrDefault(predicate);
     }
 
     public static List<Player> GetAll()

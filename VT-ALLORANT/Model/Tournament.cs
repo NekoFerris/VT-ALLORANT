@@ -17,8 +17,8 @@ public class Tournament
     public int MaxTeamRank { get; set; } = 0;
     public int CurrentStage { get; set; } = 0;
     public int MaxTeams { get; set; }
-    public PlayerRanks MinRank { get; set; } = PlayerRanks.Unranked;
-    public PlayerRanks MaxRank { get; set; } = PlayerRanks.Radiant;
+    public PlayerRanks MinPlayerRank { get; set; } = PlayerRanks.Unranked;
+    public PlayerRanks MaxPlayerRank { get; set; } = PlayerRanks.Radiant;
 
     // Constructor
     public Tournament()
@@ -86,6 +86,13 @@ public class Tournament
         dBAccess.TournamentObservers.Remove(dBAccess.TournamentObservers.Find(this.TournamentId, player.PlayerId)!);
         dBAccess.SaveChanges();
     }
+
+    public void Update()
+    {
+        using DBAccess dBAccess = new();
+        dBAccess.Update(this);
+        dBAccess.SaveChanges();
+    }   
 
     internal static void Create(string v)
     {

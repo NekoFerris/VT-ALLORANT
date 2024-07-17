@@ -67,7 +67,12 @@ namespace VT_ALLORANT.Model.Discord
         public static string CreateTeam(SocketSlashCommand command)
         {
             string teamName = command.Data.Options.First().Options.ToList()[0].Value.ToString()?.Trim() ?? throw new Exception("Kein Teamname angegeben");
-            Team.Create(teamName, Player.Load(player => player.DiscordUser.DiscordId == command.User.Id) ?? throw new Exception("Du bist nicht registriert"));
+            Player player = Player.Load(player => player.DiscordUser.DiscordId == command.User.Id) ?? throw new Exception("Du bist nicht registriert");
+            if (player.IsInAnyTeam)
+            {
+                throw new Exception("Du bist bereits in einem Team");
+            }
+            Team.Create(teamName, player);
             return $"Team {teamName} erstellt";
         }
 
@@ -98,6 +103,10 @@ namespace VT_ALLORANT.Model.Discord
                     throw new Exception($"Das Team {team.Name} ist bereits voll");
                 }
                 playerToAdd = Player.Load(player => player.DiscordUser.DiscordId == GetDiscordUserId(client, command.Data.Options.First().Options.First().Options.First().Value.ToString()?.Trim() ?? throw new Exception("Kein Spieler angegeben"), command.GuildId!.Value)) ?? throw new Exception("Spieler nicht regestriert");
+                if (playerToAdd.IsInAnyTeam)
+                {
+                    throw new Exception($"{playerToAdd.Name} ist bereits in einem anderen Team");
+                }
                 if (team.Players.Any(p => p.PlayerId == playerToAdd.PlayerId))
                 {
                     throw new Exception($"{playerToAdd.Name} ist bereits im Team {team.Name}");
@@ -415,7 +424,7 @@ namespace VT_ALLORANT.Model.Discord
 
         internal static string ListTournaments(SocketSlashCommand command)
         {
-            ICollection<Tournament> tournaments = Tournament.GetAll();
+            List<Tournament> tournaments = [.. Tournament.GetAll()];
             string tournamentList = "```";
             tournamentList += "Turniere:\n";
             foreach (Tournament tournament in tournaments)
@@ -426,19 +435,240 @@ namespace VT_ALLORANT.Model.Discord
             return tournamentList;
         }
 
-        internal static string CreateGame(SocketSlashCommand command)
+        internal static string ShowTournament(SocketSlashCommand command)
         {
-            throw new NotImplementedException();
+            Tournament tournament;
+            try
+            {
+                tournament = Tournament.Load(Int32.Parse(command.Data.Options.First().Options.First().Value.ToString()?.Trim() ?? throw new Exception("Kein Turnier angegeben")))!;
+            }
+            catch (Exception e)
+            {
+                return e.Message;
+            }
+            string tournamentList = "```";
+            tournamentList += $"Turnier: {tournament.Name}\n";
+            if (tournament.OpenForRegistration)
+            {
+            tournamentList += $"Offen für Registrierung: Ja\n";
+            }
+            else
+            {
+            tournamentList += $"Offen für Registrierung: Nein\n";
+            }
+            tournamentList += $"Teams:\n";
+            foreach (Team team in tournament.Teams)
+            {
+                tournamentList += $"{team.Name}\n";
+            }
+            tournamentList += "```";
+            return tournamentList;
+        }
+
+        internal static string SetTournamentOpenForRegistration(SocketSlashCommand command)
+        {
+            Tournament tournament;
+            try
+            {
+                tournament = Tournament.Load(Int32.Parse(command.Data.Options.First().Options.ToList()[0].ToString()?.Trim() ?? throw new Exception("Kein Turnier angegeben")))!;
+                tournament.OpenForRegistration = bool.Parse(command.Data.Options.First().Options.First().Options.ToList()[1].ToString()?.Trim() ?? throw new Exception("Kein Wert angegeben"));
+                tournament.Update();
+            }
+            catch (Exception e)
+            {
+                return e.Message;
+            }
+            return $"Turnier {tournament.Name} ist jetzt offen für Registrierung";
+        }
+
+        internal static string CreateGame(SocketSlashCommand command, DiscordSocketClient discordSocketClient)
+        {
+            Team team1;
+            Team team2;
+            Tournament tournament;
+            Player moderator;
+            try
+            {
+                team1 = Team.LoadTeam(Int32.Parse(command.Data.Options.ToList()[0].Value.ToString()?.Trim() ?? throw new Exception("Team 1 nicht angegeben")))!;
+                team2 = Team.LoadTeam(Int32.Parse(command.Data.Options.ToList()[1].Value.ToString()?.Trim() ?? throw new Exception("Team 2 nicht angegeben")))!;
+                tournament = Tournament.Load(Int32.Parse(command.Data.Options.ToList()[2].Value.ToString()?.Trim() ?? throw new Exception("Kein Turnier angegeben")))!;
+                moderator = Player.Load(player => player.DiscordUser.DiscordId == GetDiscordUserId(discordSocketClient, command.Data.Options.ToList()[4].Value.ToString()?.Trim()!, command.GuildId!.Value)) ?? throw new Exception("Du bist nicht registriert");
+                if (team1.TeamId == team2.TeamId)
+                {
+                    throw new Exception("Zwei mal das selbe Team ausgewählt");
+                }
+                Game game = new(team1, team2, moderator, [], tournament.CurrentStage);
+                game.Insert();
+            }
+            catch (Exception e)
+            {
+                return e.Message;
+            }
+            return $"Spiel zwischen {team1.Name} und {team2.Name} erstellt";
         }
 
         internal static string DeleteGame(SocketSlashCommand command)
         {
-            throw new NotImplementedException();
+            try
+            {
+                Game gameToDelete = Game.Load(g => g.GameId == Int32.Parse(command.Data.Options.First().Options.First().Value.ToString()?.Trim() ?? throw new Exception("Kein Spiel angegeben"))) ?? throw new Exception("Spiel nicht gefunden");
+                gameToDelete.Delete();
+                return $"Spiel {command.Data.Options.First().Options.First().Value.ToString()?.Trim()} gelöscht";
+            }
+            catch (Exception e)
+            {
+                return e.Message;
+            }
         }
 
         internal static string ListGames(SocketSlashCommand command)
         {
-            throw new NotImplementedException();
+            List<Game> games = [.. Game.GetAll()];
+            string gameList = "```";
+            gameList += "Spiele:\n";
+            int stage = -1;
+            foreach (Game game in games)
+            {
+                if (stage != game.Stage)
+                {
+                    stage = game.Stage;
+                    gameList += $"\nStage {stage}:\n";
+                }
+                gameList += $"{game.GameId,-4} - {game.Team1.Name} vs {game.Team2.Name}\n";
+            }
+            gameList += "```";
+            return gameList;
+        }
+
+        internal static string SetTournamentStage(SocketSlashCommand command)
+        {
+            Tournament tournament;
+            try
+            {
+                tournament = Tournament.Load(Int32.Parse(command.Data.Options.First().Options.First().Value.ToString()?.Trim() ?? throw new Exception("Kein Turnier angegeben")))!;
+                tournament.CurrentStage = Int32.Parse(command.Data.Options.First().Options.First().Options.First().Value.ToString()?.Trim() ?? throw new Exception("Kein Wert angegeben"));
+                tournament.Update();
+            }
+            catch (Exception e)
+            {
+                return e.Message;
+            }
+            return $"Turnier {tournament.Name} ist jetzt in Stage {tournament.CurrentStage}";
+        }
+
+        internal static string SetTournamentMaxTeams(SocketSlashCommand command)
+        {
+            Tournament tournament;
+            try
+            {
+                tournament = Tournament.Load(Int32.Parse(command.Data.Options.First().Options.First().Value.ToString()?.Trim() ?? throw new Exception("Kein Turnier angegeben")))!;
+                tournament.MaxTeams = Int32.Parse(command.Data.Options.First().Options.First().Options.First().Value.ToString()?.Trim() ?? throw new Exception("Kein Wert angegeben"));
+                tournament.Update();
+            }
+            catch (Exception e)
+            {
+                return e.Message;
+            }
+            return $"Turnier {tournament.Name} hat jetzt ein Maximum von {tournament.MaxTeams} Teams";
+        }
+
+        internal static string SetTournamentMaxPlayerRank(SocketSlashCommand command)
+        {
+            Tournament tournament;
+            try
+            {
+                tournament = Tournament.Load(Int32.Parse(command.Data.Options.First().Options.First().Value.ToString()?.Trim() ?? throw new Exception("Kein Turnier angegeben")))!;
+                tournament.MaxPlayerRank = Enum.Parse<PlayerRanks>(command.Data.Options.First().Options.First().Options.First().Value.ToString()?.Trim() ?? throw new Exception("Kein Wert angegeben"));
+                tournament.Update();
+            }
+            catch (Exception e)
+            {
+                return e.Message;
+            }
+            return $"Turnier {tournament.Name} hat jetzt ein Maximum von {tournament.MaxPlayerRank}";
+        }
+
+        internal static Optional<string> SetTournamentMinPlayerRank(SocketSlashCommand command)
+        {
+            Tournament tournament;
+            try
+            {
+                tournament = Tournament.Load(Int32.Parse(command.Data.Options.First().Options.First().Value.ToString()?.Trim() ?? throw new Exception("Kein Turnier angegeben")))!;
+                tournament.MinPlayerRank = Enum.Parse<PlayerRanks>(command.Data.Options.First().Options.First().Options.First().Value.ToString()?.Trim() ?? throw new Exception("Kein Wert angegeben"));
+                tournament.Update();
+            }
+            catch (Exception e)
+            {
+                return e.Message;
+            }
+            return $"Turnier {tournament.Name} hat jetzt ein Minimum von {tournament.MinPlayerRank}";
+        }
+
+        internal static Optional<string> SetModeratorForTournament(SocketSlashCommand command, DiscordSocketClient discordSocketClient)
+        {
+            Tournament tournament;
+            Player moderator;
+            try
+            {
+                tournament = Tournament.Load(Int32.Parse(command.Data.Options.First().Options.First().Value.ToString()?.Trim() ?? throw new Exception("Kein Turnier angegeben")))!;
+                moderator = Player.Load(player => player.DiscordUser.DiscordId == GetDiscordUserId(discordSocketClient, command.Data.Options.First().Options.First().Options.First().Value.ToString()?.Trim() ?? throw new Exception("Kein Spieler angegeben"), command.GuildId!.Value)) ?? throw new Exception("Spieler nicht regestriert");
+                tournament.AddModerator(moderator);
+            }
+            catch (Exception e)
+            {
+                return e.Message;
+            }
+            return $"{moderator.Name} ist jetzt Moderator von {tournament.Name}";
+        }
+
+        internal static Optional<string> SetTournamentMaxTeamRank(SocketSlashCommand command)
+        {
+            Tournament tournament;
+            try
+            {
+                tournament = Tournament.Load(Int32.Parse(command.Data.Options.First().Options.First().Value.ToString()?.Trim() ?? throw new Exception("Kein Turnier angegeben")))!;
+                tournament.MaxTeamRank = Int32.Parse(command.Data.Options.First().Options.First().Options.First().Value.ToString()?.Trim() ?? throw new Exception("Kein Wert angegeben"));
+                tournament.Update();
+            }
+            catch (Exception e)
+            {
+                return e.Message;
+            }
+            return $"Turnier {tournament.Name} hat jetzt ein Maximum von {tournament.MaxTeamRank}";
+        }
+
+        internal static string AddObserverToTournament(SocketSlashCommand command, DiscordSocketClient discordSocketClient)
+        {
+            Tournament tournament;
+            Player observer;
+            try
+            {
+                tournament = Tournament.Load(Int32.Parse(command.Data.Options.First().Options.First().Value.ToString()?.Trim() ?? throw new Exception("Kein Turnier angegeben")))!;
+                observer = Player.Load(player => player.DiscordUser.DiscordId == GetDiscordUserId(discordSocketClient, command.Data.Options.First().Options.First().Options.First().Value.ToString()?.Trim() ?? throw new Exception("Kein Spieler angegeben"), command.GuildId!.Value)) ?? throw new Exception("Spieler nicht regestriert");
+                tournament.AddObserver(observer);
+            }
+            catch (Exception e)
+            {
+                return e.Message;
+            }
+            return $"{observer.Name} ist jetzt Beobachter von {tournament.Name}";
+        }
+
+        internal static string RemoveObserverFromTournament(SocketSlashCommand command, DiscordSocketClient discordSocketClient)
+        {
+            Tournament tournament;
+            Player observer;
+            try
+            {
+                tournament = Tournament.Load(Int32.Parse(command.Data.Options.First().Options.First().Value.ToString()?.Trim() ?? throw new Exception("Kein Turnier angegeben")))!;
+                observer = Player.Load(player => player.DiscordUser.DiscordId == GetDiscordUserId(discordSocketClient, command.Data.Options.First().Options.First().Options.First().Value.ToString()?.Trim() ?? throw new Exception("Kein Spieler angegeben"), command.GuildId!.Value)) ?? throw new Exception("Spieler nicht regestriert");
+                tournament.RemoveObserver(observer);
+            }
+            catch (Exception e)
+            {
+                return e.Message;
+            }
+            return $"{observer.Name} ist jetzt kein Beobachter von {tournament.Name} mehr";
         }
     }
 }

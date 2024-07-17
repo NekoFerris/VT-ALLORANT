@@ -127,9 +127,10 @@ public class DiscordConnection
                 .WithType(ApplicationCommandOptionType.SubCommand)
                 .WithName("create")
                 .WithDescription("Spiel erstellen")
-                .AddOption("team1", ApplicationCommandOptionType.String, "Name des ersten Teams", isRequired: true)
-                .AddOption("team2", ApplicationCommandOptionType.String, "Name des zweiten Teams", isRequired: true)
+                .AddOption("team1", ApplicationCommandOptionType.Integer, "Id des ersten Teams", isRequired: true)
+                .AddOption("team2", ApplicationCommandOptionType.Integer, "Id des zweiten Teams", isRequired: true)
                 .AddOption("tournament", ApplicationCommandOptionType.Integer, "Id des Tuniers", isRequired: true)
+                .AddOption("moderator", ApplicationCommandOptionType.User, "Moderator", isRequired: true)
             ).AddOption(new SlashCommandOptionBuilder()
                 .WithType(ApplicationCommandOptionType.SubCommand)
                 .WithName("delete")
@@ -229,18 +230,16 @@ public class DiscordConnection
                 .WithType(ApplicationCommandOptionType.SubCommand)
                 .WithName("create")
                 .WithDescription("Turnier erstellen")
-                .AddOption("name", ApplicationCommandOptionType.String, "Name des Teams", isRequired: true)
+                .AddOption("name", ApplicationCommandOptionType.String, "Name des Tuniers", isRequired: true)
             ).AddOption(new SlashCommandOptionBuilder()
                 .WithType(ApplicationCommandOptionType.SubCommand)
                 .WithName("delete")
                 .WithDescription("Turnier löschen")
-            )
-            .AddOption(new SlashCommandOptionBuilder()
+            ).AddOption(new SlashCommandOptionBuilder()
                 .WithType(ApplicationCommandOptionType.SubCommand)
                 .WithName("join")
                 .WithDescription("Turnier beitreten")
-            )
-            .AddOption(new SlashCommandOptionBuilder()
+            ).AddOption(new SlashCommandOptionBuilder()
                 .WithType(ApplicationCommandOptionType.SubCommand)
                 .WithName("leave")
                 .WithDescription("Turnier verlassen")
@@ -248,6 +247,69 @@ public class DiscordConnection
                 .WithType(ApplicationCommandOptionType.SubCommand)
                 .WithName("list")
                 .WithDescription("Liste aller Turniere")
+            ).AddOption(new SlashCommandOptionBuilder()
+                .WithType(ApplicationCommandOptionType.SubCommand)
+                .WithName("show")
+                .WithDescription("Turnier anzeigen")
+                .AddOption("id", ApplicationCommandOptionType.Integer, "Id des Turniers", isRequired: true)
+            ).AddOption(new SlashCommandOptionBuilder()
+                .WithType(ApplicationCommandOptionType.SubCommandGroup)
+                .WithName("set")
+                .WithDescription("Einstellungen ändern")
+                .AddOption(new SlashCommandOptionBuilder()
+                    .WithType(ApplicationCommandOptionType.SubCommand)
+                    .WithName("stage")
+                    .WithDescription("Aktuelle Stage eines Tunieres ändern")
+                    .AddOption("id", ApplicationCommandOptionType.Integer, "Id des Turniers", isRequired: true)
+                    .AddOption("stage", ApplicationCommandOptionType.Integer, "Neue Stage", isRequired: true)
+                ).AddOption(new SlashCommandOptionBuilder()
+                    .WithType(ApplicationCommandOptionType.SubCommand)
+                    .WithName("max-teams")
+                    .WithDescription("Maximale Anzahl an Teams ändern")
+                    .AddOption("id", ApplicationCommandOptionType.Integer, "Id des Turniers", isRequired: true)
+                    .AddOption("max-teams", ApplicationCommandOptionType.Integer, "Maximale Anzahl an Teams", isRequired: true)
+                ).AddOption(new SlashCommandOptionBuilder()
+                    .WithType(ApplicationCommandOptionType.SubCommand)
+                    .WithName("max-player-rank")
+                    .WithDescription("Maximalen Spieler Rang ändern")
+                    .AddOption("id", ApplicationCommandOptionType.Integer, "Id des Turniers", isRequired: true)
+                    .AddOption("max-player-rank", ApplicationCommandOptionType.Integer, "Maximaler Spieler Rang", isRequired: true)
+                ).AddOption(new SlashCommandOptionBuilder()
+                    .WithType(ApplicationCommandOptionType.SubCommand)
+                    .WithName("min-player-rank")
+                    .WithDescription("Minimalen Spieler Rang ändern")
+                    .AddOption("id", ApplicationCommandOptionType.Integer, "Id des Turniers", isRequired: true)
+                    .AddOption("min-player-rank", ApplicationCommandOptionType.Integer, "Minimaler Spieler Rang", isRequired: true)
+                ).AddOption(new SlashCommandOptionBuilder()
+                    .WithType(ApplicationCommandOptionType.SubCommand)
+                    .WithName("moderator")
+                    .WithDescription("Moderator hinzufügen")
+                    .AddOption("id", ApplicationCommandOptionType.Integer, "Id des Turniers", isRequired: true)
+                    .AddOption("name", ApplicationCommandOptionType.User, "Moderator", isRequired: true)
+                ).AddOption(new SlashCommandOptionBuilder()
+                    .WithType(ApplicationCommandOptionType.SubCommand)
+                    .WithName("max-team-rank")
+                    .WithDescription("Maximalen Team Rang ändern")
+                    .AddOption("id", ApplicationCommandOptionType.Integer, "Id des Turniers", isRequired: true)
+                    .AddOption("max-team-rank", ApplicationCommandOptionType.Integer, "Maximaler Teamrang", isRequired: true)
+                )
+            ).AddOption(new SlashCommandOptionBuilder()
+                .WithType(ApplicationCommandOptionType.SubCommandGroup)
+                .WithName("observer")
+                .WithDescription("Beobachter hinzufügen oder entfernen")
+                .AddOption(new SlashCommandOptionBuilder()
+                    .WithType(ApplicationCommandOptionType.SubCommand)
+                    .WithName("add")
+                    .WithDescription("Beobachter hinzufügen")
+                    .AddOption("id", ApplicationCommandOptionType.Integer, "Id des Turniers", isRequired: true)
+                    .AddOption("name", ApplicationCommandOptionType.User, "Hinzuzufügender Beobachter", isRequired: true)
+                ).AddOption(new SlashCommandOptionBuilder()
+                    .WithType(ApplicationCommandOptionType.SubCommand)
+                    .WithName("remove")
+                    .WithDescription("Beobachter entfernen")
+                    .AddOption("id", ApplicationCommandOptionType.Integer, "Id des Turniers", isRequired: true)
+                    .AddOption("name", ApplicationCommandOptionType.User, "Zu entferndender Beobachter", isRequired: true)
+                )
             );
         commands.Add(guildCommand.Build());
 
@@ -344,6 +406,43 @@ public class DiscordConnection
                     case "list":
                         await command.ModifyOriginalResponseAsync(properties => properties.Content = SlashCommands.ListTournaments(command));
                         break;
+                    case "show":
+                        await command.ModifyOriginalResponseAsync(properties => properties.Content = SlashCommands.ShowTournament(command));
+                        break;
+                    case "set":
+                        switch (command.Data.Options.First().Options.First().Name)
+                        {
+                            case "stage":
+                                await command.ModifyOriginalResponseAsync(properties => properties.Content = SlashCommands.SetTournamentStage(command));
+                                break;
+                            case "max-teams":
+                                await command.ModifyOriginalResponseAsync(properties => properties.Content = SlashCommands.SetTournamentMaxTeams(command));
+                                break;
+                            case "max-player-rank":
+                                await command.ModifyOriginalResponseAsync(properties => properties.Content = SlashCommands.SetTournamentMaxPlayerRank(command));
+                                break;
+                            case "min-player-rank":
+                                await command.ModifyOriginalResponseAsync(properties => properties.Content = SlashCommands.SetTournamentMinPlayerRank(command));
+                                break;
+                            case "moderator":
+                                await command.ModifyOriginalResponseAsync(properties => properties.Content = SlashCommands.SetModeratorForTournament(command, _client!));
+                                break;
+                            case "max-team-rank":
+                                await command.ModifyOriginalResponseAsync(properties => properties.Content = SlashCommands.SetTournamentMaxTeamRank(command));
+                                break;
+                        }
+                        break;
+                    case "observer":
+                        switch (command.Data.Options.First().Options.First().Name)
+                        {
+                            case "add":
+                                await command.ModifyOriginalResponseAsync(properties => properties.Content = SlashCommands.AddObserverToTournament(command, _client!));
+                                break;
+                            case "remove":
+                                await command.ModifyOriginalResponseAsync(properties => properties.Content = SlashCommands.RemoveObserverFromTournament(command, _client!));
+                                break;
+                        }
+                        break;
                 }
                 break;
             case "setup":
@@ -368,7 +467,7 @@ public class DiscordConnection
                 switch (command.Data.Options.First().Name)
                 {
                     case "create":
-                        await command.ModifyOriginalResponseAsync(properties => properties.Content = SlashCommands.CreateGame(command));
+                        await command.ModifyOriginalResponseAsync(properties => properties.Content = SlashCommands.CreateGame(command, _client!));
                         break;
                     case "delete":
                         await command.ModifyOriginalResponseAsync(properties => properties.Content = SlashCommands.DeleteGame(command));

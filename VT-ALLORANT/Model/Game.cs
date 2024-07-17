@@ -2,6 +2,8 @@ namespace VT_ALLORANT.Model;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.ComponentModel.DataAnnotations;
 using VT_ALLORANT.Controller;
+using System;
+using Microsoft.EntityFrameworkCore;
 
 [Table("Games")]
 public class Game
@@ -95,20 +97,31 @@ public class Game
         }
     }
 
-    public void OpenGame()
+    internal static Game? Load(Func<Game, bool> predicate)
     {
-
+        using DBAccess dBAccess = new();
+        return dBAccess.Games.Include(g => g.Team1)
+                             .Include(g => g.Team2)
+                             .Include(g => g.Winner)
+                             .Include(g => g.Moderator)
+                             .Include(g => g.Observers)
+                             .FirstOrDefault(predicate);
     }
-    public void InvitePlayers()
-    {
 
+    internal void Delete()
+    {
+        using DBAccess dBAccess = new();
+        dBAccess.Games.Remove(this);
+        dBAccess.SaveChanges();
     }
-    public void InviteObservers()
-    {
 
-    }
-    public void InviteModerator()
+    internal static List<Game> GetAll()
     {
-
+        using DBAccess dBAccess = new();
+        return [.. dBAccess.Games.Include(g => g.Team1)
+                                 .Include(g => g.Team2)
+                                 .Include(g => g.Winner)
+                                 .Include(g => g.Moderator)
+                                 .Include(g => g.Observers)];
     }
 }
