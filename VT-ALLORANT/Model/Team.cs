@@ -22,7 +22,7 @@ public class Team
     public ICollection<Player> Players { get; set; } = [];
     public ICollection<Tournament> Tournaments { get; set; } = [];
     public int PlayerCount => Players.Count;
-    public int TeamRank => Players.Sum(p => (int)p.RankedScore);
+    public float TeamRank => Players.Sum(p => (int)p.RankedScore);
     public static ulong DiscordRoleId { get; set; }
     public bool IsFull => PlayerCount == MaxPlayers;
     public bool IsApproved(Tournament tournament) => CheckApproval(tournament);

@@ -43,7 +43,7 @@ namespace VT_ALLORANT.Migrations
                 {
                     RankId = table.Column<int>(type: "INTEGER", nullable: false)
                         .Annotation("Sqlite:Autoincrement", true),
-                    Score = table.Column<int>(type: "INTEGER", nullable: false)
+                    Score = table.Column<float>(type: "REAL", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -319,32 +319,32 @@ namespace VT_ALLORANT.Migrations
                 columns: new[] { "RankId", "Score" },
                 values: new object[,]
                 {
-                    { 1, 1 },
-                    { 2, 2 },
-                    { 3, 3 },
-                    { 4, 4 },
-                    { 5, 5 },
-                    { 6, 6 },
-                    { 7, 7 },
-                    { 8, 8 },
-                    { 9, 9 },
-                    { 10, 10 },
-                    { 11, 11 },
-                    { 12, 12 },
-                    { 13, 13 },
-                    { 14, 14 },
-                    { 15, 15 },
-                    { 16, 16 },
-                    { 17, 17 },
-                    { 18, 18 },
-                    { 19, 19 },
-                    { 20, 20 },
-                    { 21, 21 },
-                    { 22, 22 },
-                    { 23, 23 },
-                    { 24, 24 },
-                    { 25, 25 },
-                    { 26, 26 }
+                    { 1, 1f },
+                    { 2, 2f },
+                    { 3, 3f },
+                    { 4, 4f },
+                    { 5, 5f },
+                    { 6, 6f },
+                    { 7, 7f },
+                    { 8, 8f },
+                    { 9, 9f },
+                    { 10, 10f },
+                    { 11, 11f },
+                    { 12, 12f },
+                    { 13, 13f },
+                    { 14, 14f },
+                    { 15, 15f },
+                    { 16, 16f },
+                    { 17, 17f },
+                    { 18, 18f },
+                    { 19, 19f },
+                    { 20, 20f },
+                    { 21, 21f },
+                    { 22, 22f },
+                    { 23, 23f },
+                    { 24, 24f },
+                    { 25, 25f },
+                    { 26, 26f }
                 });
 
             migrationBuilder.CreateIndex(

@@ -46,7 +46,7 @@ public class Player
     public int PlayerId { get; set; }
     public string? Name { get; set; }
     public PlayerRanks Rank { get; set; } = PlayerRanks.Unranked;
-    public int RankedScore => RankScore.GetRank((int)Rank).Score;
+    public float RankedScore => RankScore.GetRank((int)Rank).Score;
     public int DiscordUserId { get; set; }
     public DiscordUser DiscordUser { get; set; }
     public int ValorantUserId { get; set; }

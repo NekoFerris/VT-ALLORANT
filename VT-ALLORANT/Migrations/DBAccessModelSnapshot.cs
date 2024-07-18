@@ -78,8 +78,8 @@ namespace VT_ALLORANT.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("INTEGER");
 
-                    b.Property<int>("Score")
-                        .HasColumnType("INTEGER");
+                    b.Property<float>("Score")
+                        .HasColumnType("REAL");
 
                     b.HasKey("RankId");
 
@@ -89,132 +89,132 @@ namespace VT_ALLORANT.Migrations
                         new
                         {
                             RankId = 1,
-                            Score = 1
+                            Score = 1f
                         },
                         new
                         {
                             RankId = 2,
-                            Score = 2
+                            Score = 2f
                         },
                         new
                         {
                             RankId = 3,
-                            Score = 3
+                            Score = 3f
                         },
                         new
                         {
                             RankId = 4,
-                            Score = 4
+                            Score = 4f
                         },
                         new
                         {
                             RankId = 5,
-                            Score = 5
+                            Score = 5f
                         },
                         new
                         {
                             RankId = 6,
-                            Score = 6
+                            Score = 6f
                         },
                         new
                         {
                             RankId = 7,
-                            Score = 7
+                            Score = 7f
                         },
                         new
                         {
                             RankId = 8,
-                            Score = 8
+                            Score = 8f
                         },
                         new
                         {
                             RankId = 9,
-                            Score = 9
+                            Score = 9f
                         },
                         new
                         {
                             RankId = 10,
-                            Score = 10
+                            Score = 10f
                         },
                         new
                         {
                             RankId = 11,
-                            Score = 11
+                            Score = 11f
                         },
                         new
                         {
                             RankId = 12,
-                            Score = 12
+                            Score = 12f
                         },
                         new
                         {
                             RankId = 13,
-                            Score = 13
+                            Score = 13f
                         },
                         new
                         {
                             RankId = 14,
-                            Score = 14
+                            Score = 14f
                         },
                         new
                         {
                             RankId = 15,
-                            Score = 15
+                            Score = 15f
                         },
                         new
                         {
                             RankId = 16,
-                            Score = 16
+                            Score = 16f
                         },
                         new
                         {
                             RankId = 17,
-                            Score = 17
+                            Score = 17f
                         },
                         new
                         {
                             RankId = 18,
-                            Score = 18
+                            Score = 18f
                         },
                         new
                         {
                             RankId = 19,
-                            Score = 19
+                            Score = 19f
                         },
                         new
                         {
                             RankId = 20,
-                            Score = 20
+                            Score = 20f
                         },
                         new
                         {
                             RankId = 21,
-                            Score = 21
+                            Score = 21f
                         },
                         new
                         {
                             RankId = 22,
-                            Score = 22
+                            Score = 22f
                         },
                         new
                         {
                             RankId = 23,
-                            Score = 23
+                            Score = 23f
                         },
                         new
                         {
                             RankId = 24,
-                            Score = 24
+                            Score = 24f
                         },
                         new
                         {
                             RankId = 25,
-                            Score = 25
+                            Score = 25f
                         },
                         new
                         {
                             RankId = 26,
-                            Score = 26
+                            Score = 26f
                         });
                 });
 
