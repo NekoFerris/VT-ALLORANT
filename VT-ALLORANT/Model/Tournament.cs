@@ -30,11 +30,17 @@ public class Tournament
     public void AddTeam(Team team)
     {
         using DBAccess dBAccess = new();
-        dBAccess.TournamentTeams.Attach(new TournamentTeam()
+        TournamentTeam tournamentTeam = new()
         {
             Tournament = this,
             Team = team
-        });
+        };
+        tournamentTeam.CheckApproval();
+        if(tournamentTeam.IsApproved == false)
+        {
+            throw new Exception("Team nicht zugelassen");
+        }
+        dBAccess.TournamentTeams.Attach(tournamentTeam);
         dBAccess.SaveChanges();
     }
 
@@ -90,7 +96,8 @@ public class Tournament
     public void Update()
     {
         using DBAccess dBAccess = new();
-        dBAccess.Update(this);
+        dBAccess.Entry(this).State = EntityState.Modified;
+        dBAccess.Tournaments.Update(this);
         dBAccess.SaveChanges();
     }   
 

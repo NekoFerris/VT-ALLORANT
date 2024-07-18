@@ -1,4 +1,5 @@
 using Discord;
+using Discord.Commands;
 using Discord.WebSocket;
 using VT_ALLORANT.Controller;
 using VT_ALLORANT.Model.Valorant;
@@ -572,7 +573,7 @@ namespace VT_ALLORANT.Model.Discord
 
         internal static string SetTournamentStage(SocketSlashCommand command, DiscordSocketClient discordSocketClient)
         {
-            if (!GetDiscordUserRoles(discordSocketClient, command.User.Id, command.GuildId!.Value).Any(r => r.Id == DiscordRole.GetDiscordRoleIdByType(RoleType.Admin) || r.Id == DiscordRole.GetDiscordRoleIdByType(RoleType.Moderator)))
+            if (!GetDiscordUserRoles(discordSocketClient, command.User.Id, command.GuildId!.Value).Any(r => r.Id == DiscordRole.GetDiscordRoleIdByType(RoleType.Admin)))
             {
                 return "Du hast nicht die Berechtigung für diesen Befehl";
             }
@@ -592,7 +593,7 @@ namespace VT_ALLORANT.Model.Discord
 
         internal static string SetTournamentMaxTeams(SocketSlashCommand command, DiscordSocketClient discordSocketClient)
         {
-            if (!GetDiscordUserRoles(discordSocketClient, command.User.Id, command.GuildId!.Value).Any(r => r.Id == DiscordRole.GetDiscordRoleIdByType(RoleType.Admin) || r.Id == DiscordRole.GetDiscordRoleIdByType(RoleType.Moderator)))
+            if (!GetDiscordUserRoles(discordSocketClient, command.User.Id, command.GuildId!.Value).Any(r => r.Id == DiscordRole.GetDiscordRoleIdByType(RoleType.Admin)))
             {
                 return "Du hast nicht die Berechtigung für diesen Befehl";
             }
@@ -612,68 +613,47 @@ namespace VT_ALLORANT.Model.Discord
 
         internal static string SetTournamentMaxPlayerRank(SocketSlashCommand command, DiscordSocketClient discordSocketClient)
         {
-            if (!GetDiscordUserRoles(discordSocketClient, command.User.Id, command.GuildId!.Value).Any(r => r.Id == DiscordRole.GetDiscordRoleIdByType(RoleType.Admin) || r.Id == DiscordRole.GetDiscordRoleIdByType(RoleType.Moderator)))
+            if (!GetDiscordUserRoles(discordSocketClient, command.User.Id, command.GuildId!.Value).Any(r => r.Id == DiscordRole.GetDiscordRoleIdByType(RoleType.Admin)))
             {
                 return "Du hast nicht die Berechtigung für diesen Befehl";
             }
             Tournament tournament;
             try
             {
-                tournament = Tournament.Load(Int32.Parse(command.Data.Options.First().Options.First().Value.ToString()?.Trim() ?? throw new Exception("Kein Turnier angegeben")))!;
-                tournament.MaxPlayerRank = Enum.Parse<PlayerRanks>(command.Data.Options.First().Options.First().Options.First().Value.ToString()?.Trim() ?? throw new Exception("Kein Wert angegeben"));
+                tournament = Tournament.Load(Int32.Parse(command.Data.Options.First().Options.First().Options.First().Value.ToString()?.Trim() ?? throw new Exception("Kein Turnier angegeben")))!;
+                tournament.MaxPlayerRank = Enum.Parse<PlayerRanks>(command.Data.Options.First().Options.First().Options.ToArray()[1].Value.ToString()?.Trim() ?? throw new Exception("Kein Wert angegeben"));
                 tournament.Update();
             }
             catch (Exception e)
             {
                 return e.Message;
             }
-            return $"Turnier {tournament.Name} hat jetzt ein Maximum von {tournament.MaxPlayerRank}";
+            return $"Turnier {tournament.Name} hat jetzt einen maximalen Spielerrang von {tournament.MaxPlayerRank}";
         }
 
         internal static string SetTournamentMinPlayerRank(SocketSlashCommand command, DiscordSocketClient discordSocketClient)
         {
-            if (!GetDiscordUserRoles(discordSocketClient, command.User.Id, command.GuildId!.Value).Any(r => r.Id == DiscordRole.GetDiscordRoleIdByType(RoleType.Admin) || r.Id == DiscordRole.GetDiscordRoleIdByType(RoleType.Moderator)))
+            if (!GetDiscordUserRoles(discordSocketClient, command.User.Id, command.GuildId!.Value).Any(r => r.Id == DiscordRole.GetDiscordRoleIdByType(RoleType.Admin)))
             {
                 return "Du hast nicht die Berechtigung für diesen Befehl";
             }
             Tournament tournament;
             try
             {
-                tournament = Tournament.Load(Int32.Parse(command.Data.Options.First().Options.First().Value.ToString()?.Trim() ?? throw new Exception("Kein Turnier angegeben")))!;
-                tournament.MinPlayerRank = Enum.Parse<PlayerRanks>(command.Data.Options.First().Options.First().Options.First().Value.ToString()?.Trim() ?? throw new Exception("Kein Wert angegeben"));
+                tournament = Tournament.Load(Int32.Parse(command.Data.Options.First().Options.First().Options.First().Value.ToString()?.Trim() ?? throw new Exception("Kein Turnier angegeben")))!;
+                tournament.MinPlayerRank = Enum.Parse<PlayerRanks>(command.Data.Options.First().Options.First().Options.ToArray()[1].Value.ToString()?.Trim() ?? throw new Exception("Kein Wert angegeben"));
                 tournament.Update();
             }
             catch (Exception e)
             {
                 return e.Message;
             }
-            return $"Turnier {tournament.Name} hat jetzt ein Minimum von {tournament.MinPlayerRank}";
+            return $"Turnier {tournament.Name} hat jetzt einen Minimalen Spielerrang von {tournament.MinPlayerRank}";
         }
 
-        internal static string SetModeratorForTournament(SocketSlashCommand command, DiscordSocketClient discordSocketClient)
+        internal static string SetTournamentMaxTeamRank(SocketSlashCommand command, DiscordSocketClient discordSocketClient)
         {
-            if (!GetDiscordUserRoles(discordSocketClient, command.User.Id, command.GuildId!.Value).Any(r => r.Id == DiscordRole.GetDiscordRoleIdByType(RoleType.Admin) || r.Id == DiscordRole.GetDiscordRoleIdByType(RoleType.Moderator)))
-            {
-                return "Du hast nicht die Berechtigung für diesen Befehl";
-            }
-            Tournament tournament;
-            Player moderator;
-            try
-            {
-                tournament = Tournament.Load(Int32.Parse(command.Data.Options.First().Options.First().Value.ToString()?.Trim() ?? throw new Exception("Kein Turnier angegeben")))!;
-                moderator = Player.Load(player => player.DiscordUser.DiscordId == GetDiscordUserId(discordSocketClient, command.Data.Options.First().Options.First().Options.First().Value.ToString()?.Trim() ?? throw new Exception("Kein Spieler angegeben"), command.GuildId!.Value)) ?? throw new Exception("Spieler nicht regestriert");
-                tournament.AddModerator(moderator);
-            }
-            catch (Exception e)
-            {
-                return e.Message;
-            }
-            return $"{moderator.Name} ist jetzt Moderator von {tournament.Name}";
-        }
-
-        internal static Optional<string> SetTournamentMaxTeamRank(SocketSlashCommand command, DiscordSocketClient discordSocketClient)
-        {
-            if (!GetDiscordUserRoles(discordSocketClient, command.User.Id, command.GuildId!.Value).Any(r => r.Id == DiscordRole.GetDiscordRoleIdByType(RoleType.Admin) || r.Id == DiscordRole.GetDiscordRoleIdByType(RoleType.Moderator)))
+            if (!GetDiscordUserRoles(discordSocketClient, command.User.Id, command.GuildId!.Value).Any(r => r.Id == DiscordRole.GetDiscordRoleIdByType(RoleType.Admin)))
             {
                 return "Du hast nicht die Berechtigung für diesen Befehl";
             }
@@ -681,19 +661,19 @@ namespace VT_ALLORANT.Model.Discord
             try
             {
                 tournament = Tournament.Load(Int32.Parse(command.Data.Options.First().Options.First().Value.ToString()?.Trim() ?? throw new Exception("Kein Turnier angegeben")))!;
-                tournament.MaxTeamRank = Int32.Parse(command.Data.Options.First().Options.First().Options.First().Value.ToString()?.Trim() ?? throw new Exception("Kein Wert angegeben"));
+                tournament.MaxTeamRank = Int32.Parse(command.Data.Options.First().Options.First().Options.ToArray()[1].Value.ToString()?.Trim() ?? throw new Exception("Kein Wert angegeben"));
                 tournament.Update();
             }
             catch (Exception e)
             {
                 return e.Message;
             }
-            return $"Turnier {tournament.Name} hat jetzt ein Maximum von {tournament.MaxTeamRank}";
+            return $"Turnier {tournament.Name} hat jetzt ein maximales Teamranking von {tournament.MaxTeamRank}";
         }
 
         internal static string AddObserverToTournament(SocketSlashCommand command, DiscordSocketClient discordSocketClient)
         {
-            if (!GetDiscordUserRoles(discordSocketClient, command.User.Id, command.GuildId!.Value).Any(r => r.Id == DiscordRole.GetDiscordRoleIdByType(RoleType.Admin) || r.Id == DiscordRole.GetDiscordRoleIdByType(RoleType.Moderator)))
+            if (!GetDiscordUserRoles(discordSocketClient, command.User.Id, command.GuildId!.Value).Any(r => r.Id == DiscordRole.GetDiscordRoleIdByType(RoleType.Admin)))
             {
                 return "Du hast nicht die Berechtigung für diesen Befehl";
             }
@@ -702,7 +682,7 @@ namespace VT_ALLORANT.Model.Discord
             try
             {
                 tournament = Tournament.Load(Int32.Parse(command.Data.Options.First().Options.First().Value.ToString()?.Trim() ?? throw new Exception("Kein Turnier angegeben")))!;
-                observer = Player.Load(player => player.DiscordUser.DiscordId == GetDiscordUserId(discordSocketClient, command.Data.Options.First().Options.First().Options.First().Value.ToString()?.Trim() ?? throw new Exception("Kein Spieler angegeben"), command.GuildId!.Value)) ?? throw new Exception("Spieler nicht regestriert");
+                observer = Player.Load(player => player.DiscordUser.DiscordId == GetDiscordUserId(discordSocketClient, command.Data.Options.First().Options.First().Options.ToArray()[1].Value.ToString()?.Trim() ?? throw new Exception("Kein Spieler angegeben"), command.GuildId!.Value)) ?? throw new Exception("Spieler nicht regestriert");
                 tournament.AddObserver(observer);
             }
             catch (Exception e)
@@ -714,7 +694,7 @@ namespace VT_ALLORANT.Model.Discord
 
         internal static string RemoveObserverFromTournament(SocketSlashCommand command, DiscordSocketClient discordSocketClient)
         {
-            if (!GetDiscordUserRoles(discordSocketClient, command.User.Id, command.GuildId!.Value).Any(r => r.Id == DiscordRole.GetDiscordRoleIdByType(RoleType.Admin) || r.Id == DiscordRole.GetDiscordRoleIdByType(RoleType.Moderator)))
+            if (!GetDiscordUserRoles(discordSocketClient, command.User.Id, command.GuildId!.Value).Any(r => r.Id == DiscordRole.GetDiscordRoleIdByType(RoleType.Admin)))
             {
                 return "Du hast nicht die Berechtigung für diesen Befehl";
             }
@@ -723,7 +703,7 @@ namespace VT_ALLORANT.Model.Discord
             try
             {
                 tournament = Tournament.Load(Int32.Parse(command.Data.Options.First().Options.First().Value.ToString()?.Trim() ?? throw new Exception("Kein Turnier angegeben")))!;
-                observer = Player.Load(player => player.DiscordUser.DiscordId == GetDiscordUserId(discordSocketClient, command.Data.Options.First().Options.First().Options.First().Value.ToString()?.Trim() ?? throw new Exception("Kein Spieler angegeben"), command.GuildId!.Value)) ?? throw new Exception("Spieler nicht regestriert");
+                observer = Player.Load(player => player.DiscordUser.DiscordId == GetDiscordUserId(discordSocketClient, command.Data.Options.First().Options.First().Options.ToArray()[1].Value.ToString()?.Trim() ?? throw new Exception("Kein Spieler angegeben"), command.GuildId!.Value)) ?? throw new Exception("Spieler nicht regestriert");
                 tournament.RemoveObserver(observer);
             }
             catch (Exception e)
@@ -731,6 +711,60 @@ namespace VT_ALLORANT.Model.Discord
                 return e.Message;
             }
             return $"{observer.Name} ist jetzt kein Beobachter von {tournament.Name} mehr";
+        }
+
+        internal static string AddModeratorToTournament(SocketSlashCommand command, DiscordSocketClient discordSocketClient)
+        {
+            if (!GetDiscordUserRoles(discordSocketClient, command.User.Id, command.GuildId!.Value).Any(r => r.Id == DiscordRole.GetDiscordRoleIdByType(RoleType.Admin)))
+            {
+                return "Du hast nicht die Berechtigung für diesen Befehl";
+            }
+            Tournament tournament;
+            Player moderator;
+            try
+            {
+                tournament = Tournament.Load(Int32.Parse(command.Data.Options.First().Options.First().Value.ToString()?.Trim() ?? throw new Exception("Kein Turnier angegeben")))!;
+                moderator = Player.Load(player => player.DiscordUser.DiscordId == GetDiscordUserId(discordSocketClient, command.Data.Options.First().Options.First().Options.ToArray()[1].Value.ToString()?.Trim() ?? throw new Exception("Kein Spieler angegeben"), command.GuildId!.Value)) ?? throw new Exception("Spieler nicht regestriert");
+                tournament.AddModerator(moderator);
+            }
+            catch (Exception e)
+            {
+                return e.Message;
+            }
+            return $"{moderator.Name} ist jetzt Moderator von {tournament.Name}";
+        }
+
+        internal static string RemoveModeratorFromTournament(SocketSlashCommand command, DiscordSocketClient discordSocketClient)
+        {
+            if (!GetDiscordUserRoles(discordSocketClient, command.User.Id, command.GuildId!.Value).Any(r => r.Id == DiscordRole.GetDiscordRoleIdByType(RoleType.Admin)))
+            {
+                return "Du hast nicht die Berechtigung für diesen Befehl";
+            }
+            Tournament tournament;
+            Player moderator;
+            try
+            {
+                tournament = Tournament.Load(Int32.Parse(command.Data.Options.First().Options.First().Value.ToString()?.Trim() ?? throw new Exception("Kein Turnier angegeben")))!;
+                moderator = Player.Load(player => player.DiscordUser.DiscordId == GetDiscordUserId(discordSocketClient, command.Data.Options.First().Options.First().Options.ToArray()[1].Value.ToString()?.Trim() ?? throw new Exception("Kein Spieler angegeben"), command.GuildId!.Value)) ?? throw new Exception("Spieler nicht regestriert");
+                tournament.RemoveModerator(moderator);
+            }
+            catch (Exception e)
+            {
+                return e.Message;
+            }
+            return $"{moderator.Name} ist jetzt kein Moderator von {tournament.Name} mehr";
+        }
+
+        internal static string ListRanks(SocketSlashCommand command)
+        {
+            string rankList = "```";
+            rankList += "Ränge:\n";
+            foreach (PlayerRanks rank in Enum.GetValues(typeof(PlayerRanks)))
+            {
+                rankList += $"{(int)rank,-4} - {rank}\n";
+            }
+            rankList += "```";
+            return rankList;
         }
     }
 }

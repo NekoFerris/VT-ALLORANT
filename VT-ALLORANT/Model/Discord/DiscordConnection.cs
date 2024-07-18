@@ -209,6 +209,11 @@ public class DiscordConnection
             .WithDefaultPermission(false)
             .WithDefaultMemberPermissions(GuildPermission.Administrator)
             .AddOption(new SlashCommandOptionBuilder()
+                .WithType(ApplicationCommandOptionType.SubCommand)
+                .WithName("player-ranks")
+                .WithDescription("Rolle anzeigen")
+            )
+            .AddOption(new SlashCommandOptionBuilder()
                 .WithType(ApplicationCommandOptionType.SubCommandGroup)
                 .WithName("set")
                 .WithDescription("Einstellungen ändern")
@@ -283,12 +288,6 @@ public class DiscordConnection
                     .AddOption("min-player-rank", ApplicationCommandOptionType.Integer, "Minimaler Spieler Rang", isRequired: true)
                 ).AddOption(new SlashCommandOptionBuilder()
                     .WithType(ApplicationCommandOptionType.SubCommand)
-                    .WithName("moderator")
-                    .WithDescription("Moderator hinzufügen")
-                    .AddOption("id", ApplicationCommandOptionType.Integer, "Id des Turniers", isRequired: true)
-                    .AddOption("name", ApplicationCommandOptionType.User, "Moderator", isRequired: true)
-                ).AddOption(new SlashCommandOptionBuilder()
-                    .WithType(ApplicationCommandOptionType.SubCommand)
                     .WithName("max-team-rank")
                     .WithDescription("Maximalen Team Rang ändern")
                     .AddOption("id", ApplicationCommandOptionType.Integer, "Id des Turniers", isRequired: true)
@@ -310,6 +309,23 @@ public class DiscordConnection
                     .WithDescription("Beobachter entfernen")
                     .AddOption("id", ApplicationCommandOptionType.Integer, "Id des Turniers", isRequired: true)
                     .AddOption("name", ApplicationCommandOptionType.User, "Zu entferndender Beobachter", isRequired: true)
+                )
+            ).AddOption(new SlashCommandOptionBuilder()
+                .WithType(ApplicationCommandOptionType.SubCommandGroup)
+                .WithName("moderator")
+                .WithDescription("Moderator hinzufügen oder entfernen")
+                .AddOption(new SlashCommandOptionBuilder()
+                    .WithType(ApplicationCommandOptionType.SubCommand)
+                    .WithName("add")
+                    .WithDescription("Moderator hinzufügen")
+                    .AddOption("id", ApplicationCommandOptionType.Integer, "Id des Turniers", isRequired: true)
+                    .AddOption("name", ApplicationCommandOptionType.User, "Hinzuzufügender Moderator", isRequired: true)
+                ).AddOption(new SlashCommandOptionBuilder()
+                    .WithType(ApplicationCommandOptionType.SubCommand)
+                    .WithName("remove")
+                    .WithDescription("Moderator entfernen")
+                    .AddOption("id", ApplicationCommandOptionType.Integer, "Id des Turniers", isRequired: true)
+                    .AddOption("name", ApplicationCommandOptionType.User, "Zu entferndender Moderator", isRequired: true)
                 )
             );
         commands.Add(guildCommand.Build());
@@ -425,11 +441,19 @@ public class DiscordConnection
                             case "min-player-rank":
                                 await command.ModifyOriginalResponseAsync(properties => properties.Content = SlashCommands.SetTournamentMinPlayerRank(command, _client!));
                                 break;
-                            case "moderator":
-                                await command.ModifyOriginalResponseAsync(properties => properties.Content = SlashCommands.SetModeratorForTournament(command, _client!));
-                                break;
                             case "max-team-rank":
                                 await command.ModifyOriginalResponseAsync(properties => properties.Content = SlashCommands.SetTournamentMaxTeamRank(command, _client!));
+                                break;
+                        }
+                        break;
+                    case "moderator":
+                        switch (command.Data.Options.First().Options.First().Name)
+                        {
+                            case "add":
+                                await command.ModifyOriginalResponseAsync(properties => properties.Content = SlashCommands.AddModeratorToTournament(command, _client!));
+                                break;
+                            case "remove":
+                                await command.ModifyOriginalResponseAsync(properties => properties.Content = SlashCommands.RemoveModeratorFromTournament(command, _client!));
                                 break;
                         }
                         break;
@@ -456,6 +480,9 @@ public class DiscordConnection
                                 await command.ModifyOriginalResponseAsync(properties => properties.Content = SlashCommands.SetRoleForPlayer(command, _client!));
                                 break;
                         }
+                        break;
+                    case "player-ranks":
+                        await command.ModifyOriginalResponseAsync(properties => properties.Content = SlashCommands.ListRanks(command));
                         break;
                 }
                 break;

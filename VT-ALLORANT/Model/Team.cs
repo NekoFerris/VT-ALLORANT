@@ -4,6 +4,7 @@ using VT_ALLORANT.Controller;
 using System.Reactive.Linq;
 using Microsoft.EntityFrameworkCore;
 using System.Linq;
+using System.ComponentModel;
 
 namespace VT_ALLORANT.Model;
 
@@ -23,6 +24,7 @@ public class Team
     public int PlayerCount => Players.Count;
     public int TeamRank => Players.Sum(p => (int)p.RankedScore);
     public static ulong DiscordRoleId { get; set; }
+    public bool IsFull => PlayerCount == MaxPlayers;
 
     public static void Create(string name, Player leader)
     {
@@ -40,6 +42,11 @@ public class Team
     public void AddPlayer(Player player)
     {
         using DBAccess dBAccess = new();
+        List<TournamentTeam> tournamentTeams = [.. dBAccess.TournamentTeams.Where(tt => tt.TeamId == this.TeamId)];
+        foreach (TournamentTeam tt in tournamentTeams)
+        {
+            tt.CheckApproval();
+        }
         dBAccess.TeamPlayers.Attach(new TeamPlayer()
         {
             Team = this,
