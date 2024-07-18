@@ -49,9 +49,9 @@ public class SelectMenuCommands()
             return;
         }
         Tournament tournament = Tournament.Load(Int32.Parse(string.Join(", ", component.Data.Values)));
-        if (joiningTeam.Players.Any(p => p.Rank < tournament.MinPlayerRank || p.Rank > tournament.MaxPlayerRank))
+        if (joiningTeam.Players.Any(p => p.Rank < tournament.MinPlayerRank || p.Rank > tournament.MaxPlayerRank) || joiningTeam.TeamRank > tournament.MaxTeamRank)
         {
-            await component.FollowupAsync($"Du bist bereits in einem Team für {tournament.Name} angemeldet");
+            await component.FollowupAsync($"Dein Team erfüllt nicht die Rangvoraussetzungen für {tournament.Name}");
             await component.DeleteOriginalResponseAsync();
             return;
         }

@@ -224,6 +224,13 @@ public class DiscordConnection
                     .AddOption("role", ApplicationCommandOptionType.String, "Rolle", isRequired: true, choices: [.. roleChoices])
                     .AddOption("discord-role", ApplicationCommandOptionType.Role, "Discord Rolle die zugewiesen werden soll", isRequired: true)
                 )
+                .AddOption(new SlashCommandOptionBuilder()
+                    .WithType(ApplicationCommandOptionType.SubCommand)
+                    .WithName("rank")
+                    .WithDescription("Rang einstellen")
+                    .AddOption("role", ApplicationCommandOptionType.Integer, "Rang", isRequired: true, choices: [.. roleChoices])
+                    .AddOption("score", ApplicationCommandOptionType.String, "Punktzahl des Ranges", isRequired: true)
+                )
             );
 
         commands.Add(guildCommand.Build());
@@ -478,6 +485,9 @@ public class DiscordConnection
                         {
                             case "role":
                                 await command.ModifyOriginalResponseAsync(properties => properties.Content = SlashCommands.SetRoleToDiscordRole(command, _client!));
+                                break;
+                            case "rank":
+                                await command.ModifyOriginalResponseAsync(properties => properties.Content = SlashCommands.SetRankScore(command, _client!));
                                 break;
                         }
                         break;

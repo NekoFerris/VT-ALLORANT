@@ -778,5 +778,25 @@ namespace VT_ALLORANT.Model.Discord
             rankList += "```";
             return rankList;
         }
+
+        internal static string SetRankScore(SocketSlashCommand command, DiscordSocketClient discordSocketClient)
+        {
+            if (!GetDiscordUserRoles(discordSocketClient, command.User.Id, command.GuildId!.Value).Any(r => r.Id == DiscordRole.GetDiscordRoleIdByType(RoleType.Admin)))
+            {
+                return "Du hast nicht die Berechtigung für diesen Befehl";
+            }
+            RankScore rankScore = RankScore.Load(Int32.Parse(command.Data.Options.First().Options.First().Value.ToString()?.Trim() ?? throw new Exception("Kein Rang angegeben"))) ?? throw new Exception("Rang nicht gefunden");
+            string eingabe = command.Data.Options.First().Options.First().Options.First().Value.ToString()?.Trim() ?? throw new Exception("Kein Wert angegeben");
+            if(float.TryParse(eingabe, out float score))
+            {
+                rankScore.Score = score;
+            }
+            else
+            {
+                return $"{eingabe} ist keine gültige Zahl";
+            }
+            rankScore.Update();
+            return $"Rang {rankScore.RankId} hat jetzt einen Score von {rankScore.Score}";
+        }
     }
 }
