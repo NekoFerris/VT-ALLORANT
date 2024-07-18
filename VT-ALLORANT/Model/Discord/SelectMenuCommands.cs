@@ -6,32 +6,35 @@ public class SelectMenuCommands()
 {
     public static async Task RankSelectMenu(SocketMessageComponent component)
     {
-        string[] data = component.Data.CustomId.Split(":");
-        Player player = Player.Load(player => player.PlayerId == Int32.Parse(data[1])) ?? throw new Exception("Spieler nicht gefunden");
-        if(player.DiscordUser.DiscordId != component.User.Id)
+        try
         {
-            await component.DeferAsync();
-            return;
-        }
-        if (!player.CanChangeRank)
-        {
-            await component.DeferAsync();
-            await component.FollowupAsync($"Melde dich bei einem Moderator um deinen Rang zu ändern");
-            return;
-        }
-        else
-        {
+            string[] data = component.Data.CustomId.Split(":");
+            Player player = Player.Load(player => player.PlayerId == Int32.Parse(data[1])) ?? throw new Exception("Spieler nicht gefunden");
             if (player.DiscordUser.DiscordId != component.User.Id)
             {
                 await component.DeferAsync();
                 return;
             }
-            using DBAccess dBAccess = new();
-            string rank = string.Join(", ", component.Data.Values);
-            Player playerToModify = dBAccess.Players.Find(player.PlayerId)!;
-            playerToModify!.Rank = Enum.Parse<PlayerRanks>(rank);
-            dBAccess.SaveChanges();
-            await component.FollowupAsync($"Rang {playerToModify.Rank} erfolgreich für {playerToModify.Name} gesetzt");
+            if (!player.CanChangeRank)
+            {
+                await component.DeferAsync();
+                await component.FollowupAsync($"Melde dich bei einem Moderator um deinen Rang zu ändern");
+                return;
+            }
+            else
+            {
+                using DBAccess dBAccess = new();
+                string rank = string.Join(", ", component.Data.Values);
+                Player playerToModify = dBAccess.Players.Find(player.PlayerId)!;
+                playerToModify!.Rank = Enum.Parse<PlayerRanks>(rank);
+                dBAccess.SaveChanges();
+                TournamentTeam.Load(player).ForEach(t => t.CheckApproval());
+                await component.FollowupAsync($"Rang {playerToModify.Rank} erfolgreich für {playerToModify.Name} gesetzt");
+            }
+        }
+        catch (Exception e)
+        {
+            await component.FollowupAsync(e.Message);
         }
         await component.DeleteOriginalResponseAsync();
     }
@@ -46,13 +49,13 @@ public class SelectMenuCommands()
             return;
         }
         Tournament tournament = Tournament.Load(Int32.Parse(string.Join(", ", component.Data.Values)));
-        if(joiningTeam.Players.Any(p => p.Rank < tournament.MinPlayerRank || p.Rank > tournament.MaxPlayerRank))
+        if (joiningTeam.Players.Any(p => p.Rank < tournament.MinPlayerRank || p.Rank > tournament.MaxPlayerRank))
         {
             await component.FollowupAsync($"Du bist bereits in einem Team für {tournament.Name} angemeldet");
             await component.DeleteOriginalResponseAsync();
             return;
         }
-        if(tournament.Teams.Any(t => t.TeamId == joiningTeam.TeamId))
+        if (tournament.Teams.Any(t => t.TeamId == joiningTeam.TeamId))
         {
             await component.FollowupAsync($"Du bist bereits in einem Team für {tournament.Name} angemeldet");
             await component.DeleteOriginalResponseAsync();

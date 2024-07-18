@@ -97,6 +97,9 @@ public class Player
         using DBAccess dBAccess = new();
         return dBAccess.Players.Include(d => d.DiscordUser)
                                .Include(v => v.ValorantUser)
+                               .Include(t => t.Teams)
+                               .Include(t => t.Tournaments)
+                               .Include(t => t.ObserverInGames)
                                .FirstOrDefault(predicate);
     }
 
@@ -111,6 +114,9 @@ public class Player
         using DBAccess dBAccess = new();
         return [.. dBAccess.Players.Include(d => d.DiscordUser)
                                    .Include(v => v.ValorantUser)
+                                   .Include(t => t.Teams)
+                                   .Include(t => t.Tournaments)
+                                   .Include(t => t.ObserverInGames)
                                    .Where(player => player.Teams!.Contains(t))];
     }
 

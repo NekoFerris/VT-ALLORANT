@@ -477,7 +477,7 @@ public class DiscordConnection
                         switch (command.Data.Options.First().Options.First().Name)
                         {
                             case "role":
-                                await command.ModifyOriginalResponseAsync(properties => properties.Content = SlashCommands.SetRoleForPlayer(command, _client!));
+                                await command.ModifyOriginalResponseAsync(properties => properties.Content = SlashCommands.SetRoleToDiscordRole(command, _client!));
                                 break;
                         }
                         break;

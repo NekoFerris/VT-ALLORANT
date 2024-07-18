@@ -11,7 +11,7 @@ using VT_ALLORANT.Controller;
 namespace VT_ALLORANT.Migrations
 {
     [DbContext(typeof(DBAccess))]
-    [Migration("20240717220822_Initial")]
+    [Migration("20240718123523_Initial")]
     partial class Initial
     {
         /// <inheritdoc />
@@ -426,6 +426,9 @@ namespace VT_ALLORANT.Migrations
                         .HasColumnType("INTEGER");
 
                     b.Property<int>("TournamentId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<bool?>("IsApproved")
                         .HasColumnType("INTEGER");
 
                     b.HasKey("TeamId", "TournamentId");

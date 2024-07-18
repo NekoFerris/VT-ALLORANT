@@ -67,14 +67,21 @@ namespace VT_ALLORANT.Model.Discord
 
         public static string CreateTeam(SocketSlashCommand command)
         {
+            try
+            {
             string teamName = command.Data.Options.First().Options.ToList()[0].Value.ToString()?.Trim() ?? throw new Exception("Kein Teamname angegeben");
             Player player = Player.Load(player => player.DiscordUser.DiscordId == command.User.Id) ?? throw new Exception("Du bist nicht registriert");
             if (player.IsInAnyTeam)
             {
-                throw new Exception("Du bist bereits in einem Team");
+                return "Du bist bereits in einem Team";
             }
             Team.Create(teamName, player);
             return $"Team {teamName} erstellt";
+            }
+            catch (Exception e)
+            {
+                return e.Message;
+            };
         }
 
         public static string DeleteTeam(SocketSlashCommand command)
@@ -194,7 +201,7 @@ namespace VT_ALLORANT.Model.Discord
             Player player;
             try
             {
-                if (command.Data.Options.Count == 0)
+                if (command.Data.Options.First().Options.First().Options.Count == 0)
                 {
                     player = Player.Load(player => player.DiscordUser.DiscordId == command.User.Id)!;
                 }
@@ -206,31 +213,31 @@ namespace VT_ALLORANT.Model.Discord
                 .WithSelectMenu(new SelectMenuBuilder()
                     .WithPlaceholder("Rang auswählen")
                     .WithCustomId($"rank-for:{player.PlayerId}")
-                    .AddOption("Eisen 1", "1")
-                    .AddOption("Eisen 2", "2")
-                    .AddOption("Eisen 3", "3")
-                    .AddOption("Bronze 1", "4")
-                    .AddOption("Bronze 2", "5")
-                    .AddOption("Bronze 3", "6")
-                    .AddOption("Silber 1", "7")
-                    .AddOption("Silber 2", "8")
-                    .AddOption("Silber 3", "9")
-                    .AddOption("Gold 1", "10")
-                    .AddOption("Gold 2", "11")
-                    .AddOption("Gold 3", "12")
-                    .AddOption("Platin 1", "13")
-                    .AddOption("Platin 2", "14")
-                    .AddOption("Platin 3", "15")
-                    .AddOption("Diamant 1", "16")
-                    .AddOption("Diamant 2", "17")
-                    .AddOption("Diamant 3", "18")
-                    .AddOption("Aufgestiegen 1", "19")
-                    .AddOption("Aufgestiegen 2", "20")
-                    .AddOption("Aufgestiegen 3", "21")
-                    .AddOption("Unsterblich 1", "22")
-                    .AddOption("Unsterblich 2", "23")
-                    .AddOption("Unsterblich 3", "24")
-                    .AddOption("Radiant", "25"), 0)
+                    .AddOption("Eisen 1", "2")
+                    .AddOption("Eisen 2", "3")
+                    .AddOption("Eisen 3", "4")
+                    .AddOption("Bronze 1", "5")
+                    .AddOption("Bronze 2", "6")
+                    .AddOption("Bronze 3", "7")
+                    .AddOption("Silber 1", "8")
+                    .AddOption("Silber 2", "9")
+                    .AddOption("Silber 3", "10")
+                    .AddOption("Gold 1", "11")
+                    .AddOption("Gold 2", "12")
+                    .AddOption("Gold 3", "13")
+                    .AddOption("Platin 1", "14")
+                    .AddOption("Platin 2", "15")
+                    .AddOption("Platin 3", "16")
+                    .AddOption("Diamant 1", "17")
+                    .AddOption("Diamant 2", "18")
+                    .AddOption("Diamant 3", "19")
+                    .AddOption("Aufgestiegen 1", "20")
+                    .AddOption("Aufgestiegen 2", "21")
+                    .AddOption("Aufgestiegen 3", "22")
+                    .AddOption("Unsterblich 1", "23")
+                    .AddOption("Unsterblich 2", "24")
+                    .AddOption("Unsterblich 3", "25")
+                    .AddOption("Radiant", "26"))
                     .Build();
                 await command.FollowupAsync("Wähle den neuen Rang aus", components: rankList);
             }
@@ -340,7 +347,7 @@ namespace VT_ALLORANT.Model.Discord
             }
         }
 
-        internal static string SetRoleForPlayer(SocketSlashCommand command, DiscordSocketClient client)
+        internal static string SetRoleToDiscordRole(SocketSlashCommand command, DiscordSocketClient client)
         {
             ReadOnlySpan<char> roleId = command.Data.Options.First().Options.First().Options.First().Value.ToString()?.Trim() ?? throw new Exception("Kein Rollenname angegeben");
             RoleType roleType = (RoleType)Enum.Parse(typeof(RoleType), roleId.ToString());
@@ -478,7 +485,10 @@ namespace VT_ALLORANT.Model.Discord
             tournamentList += $"Teams:\n";
             foreach (Team team in tournament.Teams)
             {
-                tournamentList += $"{team.Name}\n";
+                if(team.IsApproved(tournament))
+                    tournamentList += $"{team.Name} ✅\n";
+                else
+                    tournamentList += $"{team.Name} ❌\n";
             }
             tournamentList += "```";
             return tournamentList;
@@ -623,6 +633,7 @@ namespace VT_ALLORANT.Model.Discord
                 tournament = Tournament.Load(Int32.Parse(command.Data.Options.First().Options.First().Options.First().Value.ToString()?.Trim() ?? throw new Exception("Kein Turnier angegeben")))!;
                 tournament.MaxPlayerRank = Enum.Parse<PlayerRanks>(command.Data.Options.First().Options.First().Options.ToArray()[1].Value.ToString()?.Trim() ?? throw new Exception("Kein Wert angegeben"));
                 tournament.Update();
+                TournamentTeam.Load(tournament).ForEach(tt => tt.CheckApproval());
             }
             catch (Exception e)
             {
@@ -643,6 +654,7 @@ namespace VT_ALLORANT.Model.Discord
                 tournament = Tournament.Load(Int32.Parse(command.Data.Options.First().Options.First().Options.First().Value.ToString()?.Trim() ?? throw new Exception("Kein Turnier angegeben")))!;
                 tournament.MinPlayerRank = Enum.Parse<PlayerRanks>(command.Data.Options.First().Options.First().Options.ToArray()[1].Value.ToString()?.Trim() ?? throw new Exception("Kein Wert angegeben"));
                 tournament.Update();
+                TournamentTeam.Load(tournament).ForEach(tt => tt.CheckApproval());
             }
             catch (Exception e)
             {

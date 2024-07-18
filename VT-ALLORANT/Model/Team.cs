@@ -25,6 +25,7 @@ public class Team
     public int TeamRank => Players.Sum(p => (int)p.RankedScore);
     public static ulong DiscordRoleId { get; set; }
     public bool IsFull => PlayerCount == MaxPlayers;
+    public bool IsApproved(Tournament tournament) => CheckApproval(tournament);
 
     public static void Create(string name, Player leader)
     {
@@ -37,6 +38,12 @@ public class Team
         dBAccess.Teams.Attach(teamToAdd);
         dBAccess.SaveChanges();
         teamToAdd.AddPlayer(leader);
+    }
+
+    public bool CheckApproval(Tournament tournament)
+    {
+        DBAccess dBAccess = new();
+        return dBAccess.TournamentTeams.Find(tournament.TournamentId, TeamId).IsApproved.Value;
     }
 
     public void AddPlayer(Player player)

@@ -425,6 +425,9 @@ namespace VT_ALLORANT.Migrations
                     b.Property<int>("TournamentId")
                         .HasColumnType("INTEGER");
 
+                    b.Property<bool?>("IsApproved")
+                        .HasColumnType("INTEGER");
+
                     b.HasKey("TeamId", "TournamentId");
 
                     b.HasIndex("TournamentId");

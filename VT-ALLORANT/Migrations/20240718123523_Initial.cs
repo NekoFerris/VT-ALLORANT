@@ -258,7 +258,8 @@ namespace VT_ALLORANT.Migrations
                 columns: table => new
                 {
                     TournamentId = table.Column<int>(type: "INTEGER", nullable: false),
-                    TeamId = table.Column<int>(type: "INTEGER", nullable: false)
+                    TeamId = table.Column<int>(type: "INTEGER", nullable: false),
+                    IsApproved = table.Column<bool>(type: "INTEGER", nullable: true)
                 },
                 constraints: table =>
                 {

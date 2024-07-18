@@ -35,12 +35,8 @@ public class Tournament
             Tournament = this,
             Team = team
         };
-        tournamentTeam.CheckApproval();
-        if(tournamentTeam.IsApproved == false)
-        {
-            throw new Exception("Team nicht zugelassen");
-        }
         dBAccess.TournamentTeams.Attach(tournamentTeam);
+        tournamentTeam.CheckApproval();
         dBAccess.SaveChanges();
     }
 
