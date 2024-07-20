@@ -1,6 +1,7 @@
 using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
+using MingweiSamuel.Camille.AccountV1;
 using VT_ALLORANT.Controller;
 using VT_ALLORANT.Model.Valorant;
 
@@ -437,7 +438,9 @@ namespace VT_ALLORANT.Model.Discord
             playerList += "Spieler:\n";
             foreach (Player player in players)
             {
-                playerList += $"{discordSocketClient.GetUser(player.DiscordUser.DiscordId).Username.PadRight(20)} - {player.Name}\n";
+                Account valorantAccount = ValorantConnection.GetAccountByPUUID(player.ValorantUser.PUUID);
+                playerList += $"VTubername - Discordname - Valorantname - Rang\n";
+                playerList += $"{player.Name} - {discordSocketClient.GetUser(player.DiscordUser.DiscordId).Username} - {valorantAccount.GameName}#{valorantAccount.TagLine} - {player.Rank}\n";
             }
             playerList += "```";
             return playerList;

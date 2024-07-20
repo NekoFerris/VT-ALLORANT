@@ -4,6 +4,7 @@ using Newtonsoft.Json;
 using RestSharp;
 using System.Diagnostics;
 using System.Text;
+using MingweiSamuel.Camille.AccountV1;
 
 namespace VT_ALLORANT.Model.Valorant
 {
@@ -36,6 +37,11 @@ namespace VT_ALLORANT.Model.Valorant
         public static string GetUserUUIDByNameAndTag(string name, string tag)
         {
             return Api.AccountV1.GetByRiotId(Region.Europe, tag, name)?.Puuid ?? throw new Exception("User not found");
+        }
+
+        public static Account GetAccountByPUUID(string PUUID)
+        {
+            return Api.AccountV1.GetByPuuid(Region.Europe, PUUID) ?? throw new Exception("User not found");
         }
 
         public static bool isValorantRunning()
