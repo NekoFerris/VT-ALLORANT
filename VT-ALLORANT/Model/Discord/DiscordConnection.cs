@@ -302,7 +302,7 @@ public class DiscordConnection
                     .WithName("max-team-rank")
                     .WithDescription("Maximalen Team Rang ändern")
                     .AddOption("id", ApplicationCommandOptionType.Integer, "Id des Turniers", isRequired: true)
-                    .AddOption("max-team-rank", ApplicationCommandOptionType.Integer, "Maximaler Teamrang", isRequired: true)
+                    .AddOption("max-team-rank", ApplicationCommandOptionType.String, "Maximaler Teamrang", isRequired: true)
                 )
             ).AddOption(new SlashCommandOptionBuilder()
                 .WithType(ApplicationCommandOptionType.SubCommandGroup)

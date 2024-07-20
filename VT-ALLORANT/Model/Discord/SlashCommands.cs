@@ -675,8 +675,9 @@ namespace VT_ALLORANT.Model.Discord
             Tournament tournament;
             try
             {
-                tournament = Tournament.Load(Int32.Parse(command.Data.Options.First().Options.First().Value.ToString()?.Trim() ?? throw new Exception("Kein Turnier angegeben")))!;
-                tournament.MaxTeamRank = float.Parse(command.Data.Options.First().Options.First().Options.ToArray()[1].Value.ToString()?.Trim() ?? throw new Exception("Kein Wert angegeben"));
+                List<SocketSlashCommandDataOption> options = [.. command.Data.Options.First().Options.First().Options];
+                tournament = Tournament.Load(Int32.Parse(options[0].Value.ToString() ?? throw new Exception("Kein Turnier angegeben")))!;
+                tournament.MaxTeamRank = float.Parse(options[1].Value.ToString()?.Trim() ?? throw new Exception("Kein Wert angegeben"));
                 tournament.Update();
             }
             catch (Exception e)
