@@ -14,7 +14,7 @@ public class Tournament
     public ICollection<Player> Observers { get; set; } = [];
     public ICollection<Game> Games { get; set; } = [];
     public bool OpenForRegistration { get; set; } = false;
-    public int MaxTeamRank { get; set; } = 0;
+    public float MaxTeamRank { get; set; } = 0;
     public int CurrentStage { get; set; } = 0;
     public int MaxTeams { get; set; }
     public PlayerRanks MinPlayerRank { get; set; } = PlayerRanks.Unranked;

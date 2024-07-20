@@ -58,7 +58,7 @@ namespace VT_ALLORANT.Migrations
                         .Annotation("Sqlite:Autoincrement", true),
                     Name = table.Column<string>(type: "TEXT", nullable: false),
                     OpenForRegistration = table.Column<bool>(type: "INTEGER", nullable: false),
-                    MaxTeamRank = table.Column<int>(type: "INTEGER", nullable: false),
+                    MaxTeamRank = table.Column<float>(type: "REAL", nullable: false),
                     CurrentStage = table.Column<int>(type: "INTEGER", nullable: false),
                     MaxTeams = table.Column<int>(type: "INTEGER", nullable: false),
                     MinPlayerRank = table.Column<int>(type: "INTEGER", nullable: false),

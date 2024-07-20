@@ -483,7 +483,7 @@ namespace VT_ALLORANT.Model.Discord
             tournamentList += $"Maximale Anzahl an Teams: {tournament.MaxTeams}\n";
             tournamentList += $"Minimale Spieler Rang: {tournament.MinPlayerRank}\n";
             tournamentList += $"Maximaler Spieler Rang: {tournament.MaxPlayerRank}\n";
-            tournamentList += $"Maximaler Team Rang: {(float)tournament.MaxTeamRank/10}\n";
+            tournamentList += $"Maximaler Team Rang: {tournament.MaxTeamRank}\n";
             tournamentList += $"Aktuelle Stage: {tournament.CurrentStage}\n";
             tournamentList += $"Teams:\n";
             foreach (Team team in tournament.Teams)
@@ -676,7 +676,7 @@ namespace VT_ALLORANT.Model.Discord
             try
             {
                 tournament = Tournament.Load(Int32.Parse(command.Data.Options.First().Options.First().Value.ToString()?.Trim() ?? throw new Exception("Kein Turnier angegeben")))!;
-                tournament.MaxTeamRank = Int32.Parse(command.Data.Options.First().Options.First().Options.ToArray()[1].Value.ToString()?.Trim() ?? throw new Exception("Kein Wert angegeben"));
+                tournament.MaxTeamRank = float.Parse(command.Data.Options.First().Options.First().Options.ToArray()[1].Value.ToString()?.Trim() ?? throw new Exception("Kein Wert angegeben"));
                 tournament.Update();
             }
             catch (Exception e)

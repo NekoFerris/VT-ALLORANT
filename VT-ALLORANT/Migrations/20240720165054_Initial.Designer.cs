@@ -11,7 +11,7 @@ using VT_ALLORANT.Controller;
 namespace VT_ALLORANT.Migrations
 {
     [DbContext(typeof(DBAccess))]
-    [Migration("20240720150649_Initial")]
+    [Migration("20240720165054_Initial")]
     partial class Initial
     {
         /// <inheritdoc />
@@ -369,8 +369,8 @@ namespace VT_ALLORANT.Migrations
                     b.Property<int>("MaxPlayerRank")
                         .HasColumnType("INTEGER");
 
-                    b.Property<int>("MaxTeamRank")
-                        .HasColumnType("INTEGER");
+                    b.Property<float>("MaxTeamRank")
+                        .HasColumnType("REAL");
 
                     b.Property<int>("MaxTeams")
                         .HasColumnType("INTEGER");
