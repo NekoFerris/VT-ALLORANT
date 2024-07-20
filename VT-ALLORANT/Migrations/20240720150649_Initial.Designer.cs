@@ -11,7 +11,7 @@ using VT_ALLORANT.Controller;
 namespace VT_ALLORANT.Migrations
 {
     [DbContext(typeof(DBAccess))]
-    [Migration("20240718182205_Initial")]
+    [Migration("20240720150649_Initial")]
     partial class Initial
     {
         /// <inheritdoc />

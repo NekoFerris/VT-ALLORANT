@@ -228,7 +228,7 @@ public class DiscordConnection
                     .WithType(ApplicationCommandOptionType.SubCommand)
                     .WithName("rank")
                     .WithDescription("Rang einstellen")
-                    .AddOption("role", ApplicationCommandOptionType.Integer, "Rang", isRequired: true, choices: [.. roleChoices])
+                    .AddOption("role", ApplicationCommandOptionType.Integer, "Rang", isRequired: true)
                     .AddOption("score", ApplicationCommandOptionType.String, "Punktzahl des Ranges", isRequired: true)
                 )
             );

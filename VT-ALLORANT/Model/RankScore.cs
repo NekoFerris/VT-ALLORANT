@@ -37,6 +37,12 @@ public class RankScore
         return rankScores;
     }
 
+    public static List<RankScore> LoadAll()
+    {
+        using DBAccess dBAccess = new();
+        return [.. dBAccess.RankScores];
+    }
+
     internal static RankScore Load(int RankId)
     {
         using DBAccess dBAccess = new();
