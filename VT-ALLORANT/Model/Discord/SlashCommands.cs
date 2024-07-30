@@ -1,3 +1,4 @@
+using System.Data;
 using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
@@ -23,25 +24,25 @@ namespace VT_ALLORANT.Model.Discord
                 {
                     PUUID = ValorantConnection.GetUserUUIDByNameAndTag(valoname, tag),
                 };
+                DiscordUser discordUser = new()
+                {
+                    DiscordId = command.User.Id,
+                };
+                string name = options[2]?.Value?.ToString()?.Trim() ?? throw new Exception("Kein Name angegeben");
+                Player player = new(name.Trim(), discordUser, valorantUser);
+                player.Insert();
+                SocketGuildUser user = client.GetGuild(command.GuildId!.Value).GetUser(command.User.Id);
+                //user.ModifyAsync(properties =>
+                //{
+                //    properties.Nickname = name;
+                //}).Wait();
+                user.AddRoleAsync(DiscordRole.GetDiscordRoleIdByType(RoleType.Player)).Wait();
+                return $"Regestrierung für VTuber {name.Trim()} mit dem Valorant Account {valoname}#{tag} erfolgreich abgeschlossen";
             }
             catch
             {
                 return $"Riot Account {valoname}#{tag} nicht gefunden. Wenn du glaubst, dass es ein Fehler ist, kontaktiere bitte einen Admin";
             }
-            DiscordUser discordUser = new()
-            {
-                DiscordId = command.User.Id,
-            };
-            string name = options[2]?.Value?.ToString()?.Trim() ?? throw new Exception("Kein Name angegeben");
-            Player player = new(name.Trim(), discordUser, valorantUser);
-            player.Insert();
-            SocketGuildUser user = client.GetGuild(command.GuildId!.Value).GetUser(command.User.Id);
-            //user.ModifyAsync(properties =>
-            //{
-            //    properties.Nickname = name;
-            //}).Wait();
-            user.AddRoleAsync(DiscordRole.GetDiscordRoleIdByType(RoleType.Player)).Wait();
-            return $"Regestrierung für VTuber {name.Trim()} mit dem Valorant Account {valoname}#{tag} erfolgreich abgeschlossen";
         }
 
         public static string UnregisterPlayer(SocketSlashCommand command, DiscordSocketClient client)
@@ -52,17 +53,17 @@ namespace VT_ALLORANT.Model.Discord
             {
                 player = Player.Load(player => player.DiscordUser.DiscordId == command.User.Id) ?? throw new Exception("Du bist nicht registriert");
                 player.Delete();
+                SocketGuildUser user = client.GetGuild(command.GuildId!.Value).GetUser(command.User.Id);
+                //user.ModifyAsync(properties =>
+                //{
+                //    properties.Nickname = null;
+                //}).Wait();
+                user.RemoveRoleAsync(DiscordRole.GetDiscordRoleIdByType(RoleType.Player)).Wait();
             }
             catch (Exception e)
             {
                 return e.Message;
             }
-            SocketGuildUser user = client.GetGuild(command.GuildId!.Value).GetUser(command.User.Id);
-            //user.ModifyAsync(properties =>
-            //{
-            //    properties.Nickname = null;
-            //}).Wait();
-            user.RemoveRoleAsync(DiscordRole.GetDiscordRoleIdByType(RoleType.Player)).Wait();
             return $"Regestrierung für VTuber {player.Name} erfolgreich gelöscht";
         }
 
@@ -70,14 +71,14 @@ namespace VT_ALLORANT.Model.Discord
         {
             try
             {
-            string teamName = command.Data.Options.First().Options.ToList()[0].Value.ToString()?.Trim() ?? throw new Exception("Kein Teamname angegeben");
-            Player player = Player.Load(player => player.DiscordUser.DiscordId == command.User.Id) ?? throw new Exception("Du bist nicht registriert");
-            if (player.IsInAnyTeam)
-            {
-                return "Du bist bereits in einem Team";
-            }
-            Team.Create(teamName, player);
-            return $"Team {teamName} erstellt";
+                string teamName = command.Data.Options.First().Options.ToList()[0].Value.ToString()?.Trim() ?? throw new Exception("Kein Teamname angegeben");
+                Player player = Player.Load(player => player.DiscordUser.DiscordId == command.User.Id) ?? throw new Exception("Du bist nicht registriert");
+                if (player.IsInAnyTeam)
+                {
+                    return "Du bist bereits in einem Team";
+                }
+                Team.Create(teamName, player);
+                return $"Team {teamName} erstellt";
             }
             catch (Exception e)
             {
@@ -181,8 +182,9 @@ namespace VT_ALLORANT.Model.Discord
             Team team2;
             try
             {
-                team1 = Team.LoadTeam(command.Data.Options.ToList()[0].Value.ToString()?.Trim() ?? throw new Exception("Team 1 nicht angegeben"))!;
-                team2 = Team.LoadTeam(command.Data.Options.ToList()[1].Value.ToString()?.Trim() ?? throw new Exception("Team 2 nicht angegeben"))!;
+                List<SocketSlashCommandDataOption> options = [.. command.Data.Options.First().Options];
+                team1 = Team.Load(t => t.Name == options[0].Value.ToString()?.Trim()) ?? throw new Exception("Team 1 nicht angegeben");
+                team2 = Team.Load(t => t.Name == options[1].Value.ToString()?.Trim()) ?? throw new Exception("Team 2 nicht angegeben")!;
                 if (team1.TeamId == team2.TeamId)
                 {
                     throw new Exception("Zwei mal das selbe Team ausgewählt");
@@ -339,7 +341,7 @@ namespace VT_ALLORANT.Model.Discord
             }
             try
             {
-                Tournament.Load(Int32.Parse(command.Data.Options.First().Options.First().Value.ToString()?.Trim() ?? throw new Exception("Kein Turniername angegeben"))).Delete();
+                Tournament.Load(int.Parse(command.Data.Options.First().Options.First().Value.ToString()?.Trim() ?? throw new Exception("Kein Turniername angegeben"))).Delete();
                 return $"Turnier {command.Data.Options.First().Options.First().Value.ToString()?.Trim()} gelöscht";
             }
             catch (Exception e)
@@ -350,10 +352,11 @@ namespace VT_ALLORANT.Model.Discord
 
         internal static string SetRoleToDiscordRole(SocketSlashCommand command, DiscordSocketClient client)
         {
-            ReadOnlySpan<char> roleId = command.Data.Options.First().Options.First().Options.First().Value.ToString()?.Trim() ?? throw new Exception("Kein Rollenname angegeben");
+            List<SocketSlashCommandDataOption> options = [.. command.Data.Options.First().Options.First().Options];
+            ReadOnlySpan<char> roleId = options[0].Value.ToString()?.Trim() ?? throw new Exception("Kein Rollenname angegeben");
             RoleType roleType = (RoleType)Enum.Parse(typeof(RoleType), roleId.ToString());
             SocketGuild guild = client.GetGuild(command.GuildId!.Value);
-            SocketRole role = client.GetGuild(command.GuildId!.Value).Roles.FirstOrDefault(r => r.Name == command.Data.Options.First().Options.First().Options.ToList()[1].Value.ToString()) ?? throw new Exception("Rolle nicht gefunden");
+            SocketRole role = client.GetGuild(command.GuildId!.Value).Roles.FirstOrDefault(r => r.Name == options[1].Value.ToString()) ?? throw new Exception("Rolle nicht gefunden");
             DBAccess dBAccess = new();
             DiscordRole discordRole = dBAccess.DiscordRoles.FirstOrDefault(r => r.RoleType == roleType) ?? throw new Exception("Rolle nicht gefunden");
             discordRole.RoleId = role.Id;
@@ -392,25 +395,33 @@ namespace VT_ALLORANT.Model.Discord
             return [.. client.GetGuild(guildId).GetUser(userId).Roles];
         }
 
-        internal static string ListTeams(SocketSlashCommand command)
+        internal static string ListTeams(SocketSlashCommand command, DiscordSocketClient discordSocketClient)
         {
+            if (!GetDiscordUserRoles(discordSocketClient, command.User.Id, command.GuildId!.Value).Any(r => r.Id == DiscordRole.GetDiscordRoleIdByType(RoleType.Admin) || r.Id == DiscordRole.GetDiscordRoleIdByType(RoleType.Moderator)))
+            {
+                return "Du hast nicht die Berechtigung für diesen Befehl";
+            }
             List<Team> teams = Team.GetAll();
             string teamList = "```";
             teamList += "Teams:\n";
             foreach (Team team in teams)
             {
-                teamList += $"{team.TeamId,-4} - {team.Name}\n";
+                teamList += $"{team.TeamId,-4} - {team.Name} ({team.TeamRank})\n";
             }
             teamList += "```";
             return teamList;
         }
 
-        internal static string ShowTeam(SocketSlashCommand command)
+        internal static string ShowTeam(SocketSlashCommand command, DiscordSocketClient discordSocketClient)
         {
+            if (!GetDiscordUserRoles(discordSocketClient, command.User.Id, command.GuildId!.Value).Any(r => r.Id == DiscordRole.GetDiscordRoleIdByType(RoleType.Admin) || r.Id == DiscordRole.GetDiscordRoleIdByType(RoleType.Moderator)))
+            {
+                return "Du hast nicht die Berechtigung für diesen Befehl";
+            }
             Team team;
             try
             {
-                team = Team.LoadTeam(Int32.Parse(command.Data.Options.First().Options.First().Value.ToString()?.Trim()!))!;
+                team = Team.Load(t => t.TeamId == int.Parse(command.Data.Options.First().Options.First().Value.ToString()?.Trim()!))!;
             }
             catch (Exception e)
             {
@@ -422,7 +433,7 @@ namespace VT_ALLORANT.Model.Discord
             teamList += "Spieler:\n";
             foreach (Player player in team.Players)
             {
-                if(team.Leader.PlayerId == player.PlayerId)
+                if (team.Leader.PlayerId == player.PlayerId)
                     teamList += $"{player.Name} 👑\n";
                 else
                     teamList += $"{player.Name}\n";
@@ -433,21 +444,42 @@ namespace VT_ALLORANT.Model.Discord
 
         internal static string ListPlayers(SocketSlashCommand command, DiscordSocketClient discordSocketClient)
         {
+            if (!GetDiscordUserRoles(discordSocketClient, command.User.Id, command.GuildId!.Value).Any(r => r.Id == DiscordRole.GetDiscordRoleIdByType(RoleType.Admin) || r.Id == DiscordRole.GetDiscordRoleIdByType(RoleType.Moderator)))
+            {
+                return "Du hast nicht die Berechtigung für diesen Befehl";
+            }
             List<Player> players = Player.GetAll();
             string playerList = "```";
-            playerList += "Spieler:\n";
+            playerList += $"VTubername - Discordname - Valorantname - Rang\n";
             foreach (Player player in players)
             {
                 Account valorantAccount = ValorantConnection.GetAccountByPUUID(player.ValorantUser.PUUID);
-                playerList += $"VTubername - Discordname - Valorantname - Rang\n";
                 playerList += $"{player.Name} - {discordSocketClient.GetUser(player.DiscordUser.DiscordId).Username} - {valorantAccount.GameName}#{valorantAccount.TagLine} - {player.Rank}\n";
             }
             playerList += "```";
+            SvgHelper svgHelper = new();
+            DataTable table = new();
+            table.Columns.Add("VTubername");
+            table.Columns.Add("Discordname");
+            table.Columns.Add("Valorantname");
+            table.Columns.Add("Rang");
+            foreach (Player player in players)
+            {
+                Account valorantAccount = ValorantConnection.GetAccountByPUUID(player.ValorantUser.PUUID);
+                table.Rows.Add(player.Name, discordSocketClient.GetUser(player.DiscordUser.DiscordId).Username, $"{valorantAccount.GameName}#{valorantAccount.TagLine}", player.Rank);
+            }
+            svgHelper.AddTable(table);
+            MemoryStream stream = svgHelper.ConvertSvgToJpeg();
+            discordSocketClient.GetGuild(command.GuildId!.Value).GetTextChannel(command.ChannelId!.Value).SendFileAsync(stream, "players.jpg", "Liste aller Spieler").Wait();
             return playerList;
         }
 
-        internal static string ListTournaments(SocketSlashCommand command)
+        internal static string ListTournaments(SocketSlashCommand command, DiscordSocketClient discordSocketClient)
         {
+            if (!GetDiscordUserRoles(discordSocketClient, command.User.Id, command.GuildId!.Value).Any(r => r.Id == DiscordRole.GetDiscordRoleIdByType(RoleType.Admin) || r.Id == DiscordRole.GetDiscordRoleIdByType(RoleType.Moderator)))
+            {
+                return "Du hast nicht die Berechtigung für diesen Befehl";
+            }
             List<Tournament> tournaments = [.. Tournament.GetAll()];
             string tournamentList = "```";
             tournamentList += "Turniere:\n";
@@ -459,12 +491,16 @@ namespace VT_ALLORANT.Model.Discord
             return tournamentList;
         }
 
-        internal static string ShowTournament(SocketSlashCommand command)
+        internal static string ShowTournament(SocketSlashCommand command, DiscordSocketClient discordSocketClient)
         {
+            if (!GetDiscordUserRoles(discordSocketClient, command.User.Id, command.GuildId!.Value).Any(r => r.Id == DiscordRole.GetDiscordRoleIdByType(RoleType.Admin) || r.Id == DiscordRole.GetDiscordRoleIdByType(RoleType.Moderator)))
+            {
+                return "Du hast nicht die Berechtigung für diesen Befehl";
+            }
             Tournament tournament;
             try
             {
-                tournament = Tournament.Load(Int32.Parse(command.Data.Options.First().Options.First().Value.ToString()?.Trim() ?? throw new Exception("Kein Turnier angegeben")))!;
+                tournament = Tournament.Load(int.Parse(command.Data.Options.First().Options.First().Value.ToString()?.Trim() ?? throw new Exception("Kein Turnier angegeben")))!;
             }
             catch (Exception e)
             {
@@ -474,11 +510,11 @@ namespace VT_ALLORANT.Model.Discord
             tournamentList += $"Turnier: {tournament.Name}\n";
             if (tournament.OpenForRegistration)
             {
-            tournamentList += $"Offen für Registrierung: Ja\n";
+                tournamentList += $"Offen für Registrierung: Ja\n";
             }
             else
             {
-            tournamentList += $"Offen für Registrierung: Nein\n";
+                tournamentList += $"Offen für Registrierung: Nein\n";
             }
             tournamentList += $"Maximale Anzahl an Teams: {tournament.MaxTeams}\n";
             tournamentList += $"Minimale Spieler Rang: {tournament.MinPlayerRank}\n";
@@ -488,7 +524,7 @@ namespace VT_ALLORANT.Model.Discord
             tournamentList += $"Teams:\n";
             foreach (Team team in tournament.Teams)
             {
-                if(team.IsApproved(tournament))
+                if (team.IsApproved(tournament))
                     tournamentList += $"{team.Name} ✅\n";
                 else
                     tournamentList += $"{team.Name} ❌\n";
@@ -506,7 +542,7 @@ namespace VT_ALLORANT.Model.Discord
             Tournament tournament;
             try
             {
-                tournament = Tournament.Load(Int32.Parse(command.Data.Options.First().Options.ToList()[0].ToString()?.Trim() ?? throw new Exception("Kein Turnier angegeben")))!;
+                tournament = Tournament.Load(int.Parse(command.Data.Options.First().Options.ToList()[0].ToString()?.Trim() ?? throw new Exception("Kein Turnier angegeben")))!;
                 tournament.OpenForRegistration = bool.Parse(command.Data.Options.First().Options.First().Options.ToList()[1].ToString()?.Trim() ?? throw new Exception("Kein Wert angegeben"));
                 tournament.Update();
             }
@@ -514,7 +550,10 @@ namespace VT_ALLORANT.Model.Discord
             {
                 return e.Message;
             }
-            return $"Turnier {tournament.Name} ist jetzt offen für Registrierung";
+            if (tournament.OpenForRegistration)
+                return $"Turnier {tournament.Name} ist jetzt offen für Registrierung";
+            else
+                return $"Die Registrierung für {tournament.Name} ist jetzt geschlossen";
         }
 
         internal static string CreateGame(SocketSlashCommand command, DiscordSocketClient discordSocketClient)
@@ -529,10 +568,11 @@ namespace VT_ALLORANT.Model.Discord
             Player moderator;
             try
             {
-                team1 = Team.LoadTeam(Int32.Parse(command.Data.Options.First().Options.ToList()[0].Value.ToString()?.Trim() ?? throw new Exception("Team 1 nicht angegeben")))!;
-                team2 = Team.LoadTeam(Int32.Parse(command.Data.Options.First().Options.ToList()[1].Value.ToString()?.Trim() ?? throw new Exception("Team 2 nicht angegeben")))!;
-                tournament = Tournament.Load(Int32.Parse(command.Data.Options.First().Options.ToList()[2].Value.ToString()?.Trim() ?? throw new Exception("Kein Turnier angegeben")))!;
-                moderator = Player.Load(player => player.DiscordUser.DiscordId == GetDiscordUserId(discordSocketClient, command.Data.Options.ToList()[4].Value.ToString()?.Trim()!, command.GuildId!.Value)) ?? throw new Exception("Du bist nicht registriert");
+                List<SocketSlashCommandDataOption> options = [.. command.Data.Options.First().Options];
+                team1 = Team.Load(t => t.TeamId == int.Parse(options[0].Value.ToString()?.Trim() ?? throw new Exception("Team 1 nicht angegeben")))!;
+                team2 = Team.Load(t => t.TeamId == int.Parse(options[1].Value.ToString()?.Trim() ?? throw new Exception("Team 2 nicht angegeben")))!;
+                tournament = Tournament.Load(int.Parse(options[2].Value.ToString()?.Trim() ?? throw new Exception("Kein Turnier angegeben")))!;
+                moderator = Player.Load(player => player.DiscordUser.DiscordId == GetDiscordUserId(discordSocketClient, options[3].Value.ToString()?.Trim()!, command.GuildId!.Value)) ?? throw new Exception("Du bist nicht registriert");
                 if (team1.TeamId == team2.TeamId)
                 {
                     throw new Exception("Zwei mal das selbe Team ausgewählt");
@@ -555,7 +595,7 @@ namespace VT_ALLORANT.Model.Discord
             }
             try
             {
-                Game gameToDelete = Game.Load(g => g.GameId == Int32.Parse(command.Data.Options.First().Options.First().Value.ToString()?.Trim() ?? throw new Exception("Kein Spiel angegeben"))) ?? throw new Exception("Spiel nicht gefunden");
+                Game gameToDelete = Game.Load(g => g.GameId == int.Parse(command.Data.Options.First().Options.First().Value.ToString()?.Trim() ?? throw new Exception("Kein Spiel angegeben"))) ?? throw new Exception("Spiel nicht gefunden");
                 gameToDelete.Delete();
                 return $"Spiel {command.Data.Options.First().Options.First().Value.ToString()?.Trim()} gelöscht";
             }
@@ -593,8 +633,9 @@ namespace VT_ALLORANT.Model.Discord
             Tournament tournament;
             try
             {
-                tournament = Tournament.Load(Int32.Parse(command.Data.Options.First().Options.First().Value.ToString()?.Trim() ?? throw new Exception("Kein Turnier angegeben")))!;
-                tournament.CurrentStage = Int32.Parse(command.Data.Options.First().Options.First().Options.First().Value.ToString()?.Trim() ?? throw new Exception("Kein Wert angegeben"));
+                List<SocketSlashCommandDataOption> options = [.. command.Data.Options.First().Options.First().Options];
+                tournament = Tournament.Load(int.Parse(options[0].Value.ToString()?.Trim() ?? throw new Exception("Kein Turnier angegeben")))!;
+                tournament.CurrentStage = int.Parse(options[1].Value.ToString()?.Trim() ?? throw new Exception("Kein Wert angegeben"));
                 tournament.Update();
             }
             catch (Exception e)
@@ -613,8 +654,9 @@ namespace VT_ALLORANT.Model.Discord
             Tournament tournament;
             try
             {
-                tournament = Tournament.Load(Int32.Parse(command.Data.Options.First().Options.First().Options.First().Value.ToString()?.Trim() ?? throw new Exception("Kein Turnier angegeben")))!;
-                tournament.MaxTeams = Int32.Parse(command.Data.Options.First().Options.First().Options.ToList()[1].Value.ToString()?.Trim() ?? throw new Exception("Kein Wert angegeben"));
+                List<SocketSlashCommandDataOption> options = [.. command.Data.Options.First().Options.First().Options];
+                tournament = Tournament.Load(int.Parse(options[0].Value.ToString()?.Trim() ?? throw new Exception("Kein Turnier angegeben")))!;
+                tournament.MaxTeams = int.Parse(options[1].Value.ToString()?.Trim() ?? throw new Exception("Kein Wert angegeben"));
                 tournament.Update();
             }
             catch (Exception e)
@@ -633,8 +675,9 @@ namespace VT_ALLORANT.Model.Discord
             Tournament tournament;
             try
             {
-                tournament = Tournament.Load(Int32.Parse(command.Data.Options.First().Options.First().Options.First().Value.ToString()?.Trim() ?? throw new Exception("Kein Turnier angegeben")))!;
-                tournament.MaxPlayerRank = Enum.Parse<PlayerRanks>(command.Data.Options.First().Options.First().Options.ToArray()[1].Value.ToString()?.Trim() ?? throw new Exception("Kein Wert angegeben"));
+                List<SocketSlashCommandDataOption> options = [.. command.Data.Options.First().Options.First().Options];
+                tournament = Tournament.Load(int.Parse(options[0].Value.ToString()?.Trim() ?? throw new Exception("Kein Turnier angegeben")))!;
+                tournament.MaxPlayerRank = Enum.Parse<PlayerRanks>(options[1].Value.ToString()?.Trim() ?? throw new Exception("Kein Wert angegeben"));
                 tournament.Update();
                 TournamentTeam.Load(tournament).ForEach(tt => tt.CheckApproval());
             }
@@ -654,8 +697,9 @@ namespace VT_ALLORANT.Model.Discord
             Tournament tournament;
             try
             {
-                tournament = Tournament.Load(Int32.Parse(command.Data.Options.First().Options.First().Options.First().Value.ToString()?.Trim() ?? throw new Exception("Kein Turnier angegeben")))!;
-                tournament.MinPlayerRank = Enum.Parse<PlayerRanks>(command.Data.Options.First().Options.First().Options.ToArray()[1].Value.ToString()?.Trim() ?? throw new Exception("Kein Wert angegeben"));
+                List<SocketSlashCommandDataOption> options = [.. command.Data.Options.First().Options.First().Options];
+                tournament = Tournament.Load(int.Parse(options[0].Value.ToString()?.Trim() ?? throw new Exception("Kein Turnier angegeben")))!;
+                tournament.MinPlayerRank = Enum.Parse<PlayerRanks>(options[1].Value.ToString()?.Trim() ?? throw new Exception("Kein Wert angegeben"));
                 tournament.Update();
                 TournamentTeam.Load(tournament).ForEach(tt => tt.CheckApproval());
             }
@@ -676,7 +720,7 @@ namespace VT_ALLORANT.Model.Discord
             try
             {
                 List<SocketSlashCommandDataOption> options = [.. command.Data.Options.First().Options.First().Options];
-                tournament = Tournament.Load(Int32.Parse(options[0].Value.ToString() ?? throw new Exception("Kein Turnier angegeben")))!;
+                tournament = Tournament.Load(int.Parse(options[0].Value.ToString() ?? throw new Exception("Kein Turnier angegeben")))!;
                 tournament.MaxTeamRank = float.Parse(options[1].Value.ToString()?.Trim() ?? throw new Exception("Kein Wert angegeben"));
                 tournament.Update();
             }
@@ -697,8 +741,9 @@ namespace VT_ALLORANT.Model.Discord
             Player observer;
             try
             {
-                tournament = Tournament.Load(Int32.Parse(command.Data.Options.First().Options.First().Value.ToString()?.Trim() ?? throw new Exception("Kein Turnier angegeben")))!;
-                observer = Player.Load(player => player.DiscordUser.DiscordId == GetDiscordUserId(discordSocketClient, command.Data.Options.First().Options.First().Options.ToArray()[1].Value.ToString()?.Trim() ?? throw new Exception("Kein Spieler angegeben"), command.GuildId!.Value)) ?? throw new Exception("Spieler nicht regestriert");
+                List<SocketSlashCommandDataOption> options = [.. command.Data.Options.First().Options];
+                tournament = Tournament.Load(int.Parse(options[0].Value.ToString()?.Trim() ?? throw new Exception("Kein Turnier angegeben")))!;
+                observer = Player.Load(player => player.DiscordUser.DiscordId == GetDiscordUserId(discordSocketClient, options[1].Value.ToString()?.Trim() ?? throw new Exception("Kein Spieler angegeben"), command.GuildId!.Value)) ?? throw new Exception("Spieler nicht regestriert");
                 tournament.AddObserver(observer);
             }
             catch (Exception e)
@@ -718,8 +763,9 @@ namespace VT_ALLORANT.Model.Discord
             Player observer;
             try
             {
-                tournament = Tournament.Load(Int32.Parse(command.Data.Options.First().Options.First().Value.ToString()?.Trim() ?? throw new Exception("Kein Turnier angegeben")))!;
-                observer = Player.Load(player => player.DiscordUser.DiscordId == GetDiscordUserId(discordSocketClient, command.Data.Options.First().Options.First().Options.ToArray()[1].Value.ToString()?.Trim() ?? throw new Exception("Kein Spieler angegeben"), command.GuildId!.Value)) ?? throw new Exception("Spieler nicht regestriert");
+                List<SocketSlashCommandDataOption> options = [.. command.Data.Options.First().Options];
+                tournament = Tournament.Load(int.Parse(options[0].Value.ToString()?.Trim() ?? throw new Exception("Kein Turnier angegeben")))!;
+                observer = Player.Load(player => player.DiscordUser.DiscordId == GetDiscordUserId(discordSocketClient, options[1].Value.ToString()?.Trim() ?? throw new Exception("Kein Spieler angegeben"), command.GuildId!.Value)) ?? throw new Exception("Spieler nicht regestriert");
                 tournament.RemoveObserver(observer);
             }
             catch (Exception e)
@@ -739,8 +785,9 @@ namespace VT_ALLORANT.Model.Discord
             Player moderator;
             try
             {
-                tournament = Tournament.Load(Int32.Parse(command.Data.Options.First().Options.First().Value.ToString()?.Trim() ?? throw new Exception("Kein Turnier angegeben")))!;
-                moderator = Player.Load(player => player.DiscordUser.DiscordId == GetDiscordUserId(discordSocketClient, command.Data.Options.First().Options.First().Options.ToArray()[1].Value.ToString()?.Trim() ?? throw new Exception("Kein Spieler angegeben"), command.GuildId!.Value)) ?? throw new Exception("Spieler nicht regestriert");
+                List<SocketSlashCommandDataOption> options = [.. command.Data.Options.First().Options];
+                tournament = Tournament.Load(int.Parse(options[0].Value.ToString()?.Trim() ?? throw new Exception("Kein Turnier angegeben")))!;
+                moderator = Player.Load(player => player.DiscordUser.DiscordId == GetDiscordUserId(discordSocketClient, options[1].Value.ToString()?.Trim() ?? throw new Exception("Kein Spieler angegeben"), command.GuildId!.Value)) ?? throw new Exception("Spieler nicht regestriert");
                 tournament.AddModerator(moderator);
             }
             catch (Exception e)
@@ -760,8 +807,9 @@ namespace VT_ALLORANT.Model.Discord
             Player moderator;
             try
             {
-                tournament = Tournament.Load(Int32.Parse(command.Data.Options.First().Options.First().Value.ToString()?.Trim() ?? throw new Exception("Kein Turnier angegeben")))!;
-                moderator = Player.Load(player => player.DiscordUser.DiscordId == GetDiscordUserId(discordSocketClient, command.Data.Options.First().Options.First().Options.ToArray()[1].Value.ToString()?.Trim() ?? throw new Exception("Kein Spieler angegeben"), command.GuildId!.Value)) ?? throw new Exception("Spieler nicht regestriert");
+                List<SocketSlashCommandDataOption> options = [.. command.Data.Options.First().Options];
+                tournament = Tournament.Load(int.Parse(options[0].Value.ToString()?.Trim() ?? throw new Exception("Kein Turnier angegeben")))!;
+                moderator = Player.Load(player => player.DiscordUser.DiscordId == GetDiscordUserId(discordSocketClient, options[1].Value.ToString()?.Trim() ?? throw new Exception("Kein Spieler angegeben"), command.GuildId!.Value)) ?? throw new Exception("Spieler nicht regestriert");
                 tournament.RemoveModerator(moderator);
             }
             catch (Exception e)
@@ -779,7 +827,7 @@ namespace VT_ALLORANT.Model.Discord
             foreach (PlayerRanks rank in Enum.GetValues(typeof(PlayerRanks)))
             {
                 int rangrummer = (int)rank;
-                rankList += $"{rangrummer,-4} - {rank, 10} - {rankScores[rangrummer - 1].Score}\n";
+                rankList += $"{rangrummer,-4} - {rank,10} - {rankScores[rangrummer - 1].Score}\n";
             }
             rankList += "```";
             return rankList;
@@ -792,9 +840,9 @@ namespace VT_ALLORANT.Model.Discord
                 return "Du hast nicht die Berechtigung für diesen Befehl";
             }
             List<SocketSlashCommandDataOption> options = [.. command.Data.Options.First().Options.First().Options];
-            RankScore rankScore = RankScore.Load(Int32.Parse(options[0].Value.ToString())) ?? throw new Exception("Rang nicht gefunden");
+            RankScore rankScore = RankScore.Load(int.Parse(options[0].Value.ToString())) ?? throw new Exception("Rang nicht gefunden");
             string eingabe = options[1].Value.ToString() ?? throw new Exception("Kein Wert angegeben");
-            if(float.TryParse(eingabe, out float score))
+            if (float.TryParse(eingabe, out float score))
             {
                 rankScore.Score = score;
             }

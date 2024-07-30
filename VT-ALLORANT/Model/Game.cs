@@ -48,7 +48,7 @@ public class Game
     public void Insert()
     {
         using DBAccess dBAccess = new();
-        dBAccess.Games.Add(this);
+        dBAccess.Games.Attach(this);
         dBAccess.SaveChanges();
     }
 

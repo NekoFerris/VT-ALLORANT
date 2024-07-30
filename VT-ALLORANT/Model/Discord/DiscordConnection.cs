@@ -365,10 +365,10 @@ public class DiscordConnection
                         await command.ModifyOriginalResponseAsync(properties => properties.Content = SlashCommands.DeleteTeam(command));
                         break;
                     case "list":
-                        await command.ModifyOriginalResponseAsync(properties => properties.Content = SlashCommands.ListTeams(command));
+                        await command.ModifyOriginalResponseAsync(properties => properties.Content = SlashCommands.ListTeams(command, _client!));
                         break;
                     case "show":
-                        await command.ModifyOriginalResponseAsync(properties => properties.Content = SlashCommands.ShowTeam(command));
+                        await command.ModifyOriginalResponseAsync(properties => properties.Content = SlashCommands.ShowTeam(command, _client!));
                         break;
                     case "set":
                         switch (command.Data.Options.First().Options.First().Name)
@@ -432,10 +432,10 @@ public class DiscordConnection
                         await SlashCommands.TeamLeaveTournament(command);
                         break;
                     case "list":
-                        await command.ModifyOriginalResponseAsync(properties => properties.Content = SlashCommands.ListTournaments(command));
+                        await command.ModifyOriginalResponseAsync(properties => properties.Content = SlashCommands.ListTournaments(command, _client!));
                         break;
                     case "show":
-                        await command.ModifyOriginalResponseAsync(properties => properties.Content = SlashCommands.ShowTournament(command));
+                        await command.ModifyOriginalResponseAsync(properties => properties.Content = SlashCommands.ShowTournament(command, _client!));
                         break;
                     case "set":
                         switch (command.Data.Options.First().Options.First().Name)

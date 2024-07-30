@@ -69,27 +69,6 @@ public class Team
         dBAccess.SaveChanges();
     }
 
-    public static Team? LoadTeam(int id)
-    {
-        using DBAccess dBAccess = new();
-        Team? t = dBAccess.Teams.Find(id)!;
-        t.Leader = Player.Load(player => player.PlayerId == t.LeaderId)!;
-        t.Players = Player.GetPlayersForTeam(t);
-        return t;
-    }
-
-    public static Team? LoadTeam(string name)
-    {
-        using DBAccess dBAccess = new();
-        Team? t = dBAccess.Teams .Include(t => t.Leader)
-                                .Include(t => t.Players)
-                                    .ThenInclude(p => p.ValorantUser)
-                                .Include(t => t.Players)
-                                    .ThenInclude(p => p.DiscordUser)
-                                .FirstOrDefault(t => t.Name == name);
-        return t;
-    }
-
     public static Team? Load(Func<Team, bool> predicate)
     {
         using DBAccess dBAccess = new();

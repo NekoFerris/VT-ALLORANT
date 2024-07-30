@@ -16,26 +16,25 @@ namespace VT_ALLORANT.Model
         public void CheckApproval()
         {
             DBAccess dBAccess = new();
+            bool? wasApproved = IsApproved;
             if (Tournament!.MaxTeamRank < Team!.TeamRank)
             {
                 IsApproved = false;
-                dBAccess.Entry(this).State = EntityState.Modified;
-                dBAccess.Update(this);
-                dBAccess.SaveChanges();
-                return;
+                if (Team.Players.Any(p => (int)p.Rank < (int)Tournament.MinPlayerRank || (int)p.Rank > (int)Tournament.MaxPlayerRank))
+                {
+                    IsApproved = false;
+                }
+                else
+                {
+                    IsApproved = true;
+                }
             }
-            if (Team.Players.Any(p => (int)p.Rank < (int)Tournament.MinPlayerRank || (int)p.Rank > (int)Tournament.MaxPlayerRank))	
+            if (wasApproved != IsApproved)
             {
-                IsApproved = false;
                 dBAccess.Entry(this).State = EntityState.Modified;
                 dBAccess.Update(this);
                 dBAccess.SaveChanges();
-                return;
             }
-            IsApproved = true;
-            dBAccess.Entry(this).State = EntityState.Modified;
-            dBAccess.Update(this);
-            dBAccess.SaveChanges();
         }
 
         public static TournamentTeam? Load(int tournamentId, int teamId)
@@ -49,7 +48,7 @@ namespace VT_ALLORANT.Model
             using DBAccess dBAccess = new();
             return [.. dBAccess.TournamentTeams.Include(t => t.Tournament).Include(t => t.Team).ThenInclude(t => t.Players).Where(t => t.Team!.Players.Contains(player))];
         }
-        
+
         public static List<TournamentTeam>? Load(Tournament tournament)
         {
             using DBAccess dBAccess = new();
